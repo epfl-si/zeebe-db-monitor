@@ -1,0 +1,6 @@
+node_modules/
+.env
+build
+ansible/ansible-tmp
+src/version.js
+working-data/
