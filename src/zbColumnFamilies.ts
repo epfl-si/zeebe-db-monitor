@@ -1,9 +1,5 @@
-import RocksDB from "rocksdb";
-import Bytes = RocksDB.Bytes;
-
-
 // same as zeebe/engine/src/main/java/io/camunda/zeebe/engine/state/ZbColumnFamilies.java
-enum ZbColumnFamilies {
+export enum ZbColumnFamilies {
   DEFAULT,
 
   // util
@@ -83,38 +79,4 @@ enum ZbColumnFamilies {
   AWAIT_WORKLOW_RESULT,
 
   JOB_BACKOFF
-}
-
-
-const isInt64Key = (key: Bytes) => {
-  key.readBigInt64LE
-
-  const view = new DataView(key);
-
-  return DataView.prototype.getBigUint64()
-  return key === BigUint64Array.new(key)
-
-}
-
-/* Best effort to return the key as String, finding the right decoder if possible*/
-export const readKey = (key: Bytes): String =>
-{
-  // the first pack of char are useless, so try until we get one
-
-  // we can have (as Dom)
-  // Tok
-  // Int64
-  // String
-
-  // we can have ( as typescript)
-  //'ascii'|'utf8'|'utf16le'|'ucs2'(alias of 'utf16le')|'base64'|'binary'(deprecated)|'hex
-
-
-
-
-  if (isInt64Key(key)) {
-    return key as Int64Key
-  }
-
-  return key as String
 }

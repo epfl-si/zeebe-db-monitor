@@ -5,6 +5,3 @@ process.on( 'SIGINT', function() {
   // some other closing procedures go here
   process.exit( );
 })
-
-
-
