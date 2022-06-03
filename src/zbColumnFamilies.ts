@@ -80,3 +80,12 @@ export enum ZbColumnFamilies {
 
   JOB_BACKOFF
 }
+
+
+
+// yep, that enum is trick to list
+export const columnFamiliesNames = Object.entries(ZbColumnFamilies).filter(
+  (entry) => !isNaN(Number(entry[1]))
+).map(
+  entry => entry[0] as keyof typeof ZbColumnFamilies
+)

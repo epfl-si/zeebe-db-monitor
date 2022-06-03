@@ -1,31 +1,13 @@
 import 'mocha'
 import 'path'
-import * as path from "path";
-
-
-import {getDirectories} from "../src/utils";
 import { ZeebeDB } from '../src/zeebeDB';
+import {snapshotsWorkingDir} from "../src/folders";
 
 /* Init chai shortcuts */
 const chai = require('chai')
 chai.use(require('chai-fs'))
 const expect = chai.expect
 
-
-// TODO: Manage multiple snapshots in the directory
-// TODO: Manage the CURRENT if available
-
-const snapshotPathEnv = process.env['SNAPSHOT_PATH'] ??
-  (() => {
-    throw ("Missing env var SNAPSHOT_PATH that declare the base path to the snapshots folder, e.g.: ")
-  })()
-
-const snapshotsSubDir = 'raft-partition/partitions/1/snapshots'
-const snapshotsWorkingDir = path.join(
-  snapshotPathEnv,
-  snapshotsSubDir,
-  getDirectories(path.join(snapshotPathEnv, snapshotsSubDir))[0]  // get the first folder (will be a snapshot number)
-)
 
 describe('snapshots data integrity tests', () => {
   describe('Zeebe DB API', () => {

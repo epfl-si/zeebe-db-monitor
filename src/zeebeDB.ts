@@ -5,7 +5,7 @@ import { Buffer } from 'node:buffer'
 
 // TODO: add the possibility to read CURRENT + X SNAPSHOTS
 // TODO: @dom assert we want current, because https://github.com/google/leveldb/blob/main/doc/index.md#snapshots
-// TODO: add prometheus-exporter, label be the snapshot name
+// TODO: make it work with phd-assess local docker-compose
 // TODO: set a pod on phd-test
 
 /**
@@ -54,7 +54,6 @@ export class ZeebeDB {
           reject(err)
         })
         .on('close', function () {
-          console.log('Stream closed')
         })
         .on('end', function () {
           resolve()
