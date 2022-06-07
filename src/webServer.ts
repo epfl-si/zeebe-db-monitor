@@ -24,8 +24,8 @@ expressApp.get('/metrics', async (req: Request, res: Response) => {
       await zdb.walkColumnFamily(columnFamilyName, function() {
         count++;
       })
-      metricsRegistry.getSingleMetric(`db_counter_${columnFamilyName}`).set(
-        { db_name: snapshotFolderName }, count
+      metricsRegistry.getSingleMetric(`db_column_family_entries`).set(
+        { db_name: snapshotFolderName, column_family: columnFamilyName }, count
       );
   })
 

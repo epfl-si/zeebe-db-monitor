@@ -1,6 +1,3 @@
-import {columnFamiliesNames} from "./zbColumnFamilies";
-
-
 const client = require("prom-client");
 export const metricsRegistry = new client.Registry();
 
@@ -22,12 +19,11 @@ metricsRegistry.registerMetric(
   })
 );
 
-// Create a gauge for every potential column family
-columnFamiliesNames.map((columnFamilyName) => {
-  const gauge = new client.Gauge({
-    name: `db_counter_${columnFamilyName}`,
-    help: `Count the number of ${columnFamilyName} inside the db`,
-    labelNames: ['db_name'],
-  });
-  metricsRegistry.registerMetric(gauge);
-})
+// Create a gauge for column families
+metricsRegistry.registerMetric(
+  new client.Gauge({
+    name: `db_column_family_entries`,
+    help: `Number of elements per column families inside the db`,
+    labelNames: ['db_name', 'column_family'],
+  })
+);
