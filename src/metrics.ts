@@ -4,7 +4,7 @@ export const metricsRegistry = new client.Registry();
 
 client.collectDefaultMetrics({
   app: 'zeebe-snapshots-monitor',
-  prefix: 'default_metrics_',
+  prefix: '',
   timeout: 10000,
   gcDurationBuckets: [0.001, 0.01, 0.1, 1, 2, 5],
   register: metricsRegistry
