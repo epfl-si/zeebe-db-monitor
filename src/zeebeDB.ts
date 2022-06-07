@@ -3,8 +3,8 @@ import levelup, { LevelUp } from "levelup";
 import { ZbColumnFamilies } from "./zbColumnFamilies";
 import { Buffer } from 'node:buffer'
 
-// TODO: add the possibility to read CURRENT + X SNAPSHOTS
-// TODO: @dom assert we want current, because https://github.com/google/leveldb/blob/main/doc/index.md#snapshots
+
+// TODO: assert we want current, because https://github.com/google/leveldb/blob/main/doc/index.md#snapshots
 // TODO: make it work with phd-assess local docker-compose
 // TODO: set a pod on phd-test
 
