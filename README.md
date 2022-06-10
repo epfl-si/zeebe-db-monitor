@@ -9,8 +9,13 @@ Monitor number of elements inside Zeebe DB
 - `docker build . -t zeebe-snapshots-monitor`
 
 - Find a snapshot path and set the correct ENV
-  - `export SNAPSHOT_PATH=PATH_TO_YOUR_SNAPSHOT`
+  - or `export ZEEBE_DATA_PATH=/home/del/workspace/PhDAssess/docker/volumes/zeebe_data`
+  - or `export ZEEBE_DATA_PATH=/home/del/workspace/tmp/snapshots_for_snapshots_monitor`
 - `docker-compose up`
+- then, go to 
+  - 127.0.0.1:4000 for the dashboards
+  - 127.0.0.1:9090 for the metric query
+  - 127.0.0.1:8080/metrics for raw metrics
 
 ## Prometheus
 

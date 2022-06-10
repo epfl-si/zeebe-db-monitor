@@ -30,9 +30,9 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
     ports:
-      - 3000:3000
+      - 4000:3000
     expose:
-      - 3000
+      - 4000
     networks:
       - monitoring
   zeebe-snapshots-monitor:
@@ -40,8 +40,7 @@ services:
       context: .
     volumes:
       - .:/app
-      - ${SNAPSHOT_PATH}:/snapshots-ro
-      - ${SNAPSHOT_PATH}
+      - ${ZEEBE_DATA_PATH}:/zeebe-data-ro:ro
     ports:
       - 8080:8080
     expose:

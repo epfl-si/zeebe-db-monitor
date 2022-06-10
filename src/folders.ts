@@ -1,24 +1,38 @@
 import path from "path";
-import {getDirectories} from "./utils";
+import {readdir} from "fs";
 
 /**
  * Manage directories about the RocksDB snapshot folder structure
  */
 
-// TODO: Manage multiple snapshots in the directory
-// TODO: Manage the CURRENT if available
-
-const snapshotPathEnv = process.env['SNAPSHOT_PATH'] ??
+const zeebeDataPathEnv = process.env['ZEEBE_DATA_PATH'] ??
   (() => {
-    throw ("Missing env var SNAPSHOT_PATH that declare the base path to the snapshots folder, e.g.: ")
+    throw ("Missing env var ZEEBE_DATA_PATH that declare the base path to the snapshots folder, e.g.: ")
   })()
 
-const snapshotsSubDir = 'raft-partition/partitions/1/snapshots'
+const zeebeFirstPartitionSubir = 'raft-partition/partitions/1'
+export const runtimeDir = path.join(zeebeDataPathEnv, zeebeFirstPartitionSubir, 'runtime')
+const snapshotsSubDir = path.join(zeebeFirstPartitionSubir, 'snapshots')
 
-export const snapshotFolderName = getDirectories(path.join(snapshotPathEnv, snapshotsSubDir))[0]  // get the first folder (will be a snapshot number)
+/**
+ * get the first folder (will be a snapshot number), or undefined if no snapshot
+ * Currently unused, because as the dynamic way snapshots are created, a simple symlink is not enough
+ */
+export const forEachSnapshots = async (callback: (snapshotFullPath: string, snapshotName: string) => void) => {
+  const snapshotPath = path.join(zeebeDataPathEnv, snapshotsSubDir)
 
-export const snapshotsWorkingDir = path.join(
-  snapshotPathEnv,
-  snapshotsSubDir,
-  snapshotFolderName,
-)
+  await readdir(
+    snapshotPath, { withFileTypes: true }, ((err, files) => {
+      if (err) {
+        throw err
+      } else {
+        console.debug(`Listing folders/files`)
+        files.filter(dirent => dirent.isDirectory()).map((dirent) => {
+            console.debug(`running on ${dirent.name}`)
+            callback(path.join(snapshotPath, dirent.name), dirent.name)
+          }
+        );
+      }
+   })
+  )
+}
