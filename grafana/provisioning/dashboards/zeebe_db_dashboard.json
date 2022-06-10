@@ -39,7 +39,8 @@
           },
           "custom": {
             "axisLabel": "",
-            "axisPlacement": "auto",
+            "axisPlacement": "right",
+            "axisSoftMin": 0,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 0,
@@ -55,7 +56,7 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -65,6 +66,7 @@
               "mode": "off"
             }
           },
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -78,7 +80,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "none"
         },
         "overrides": []
       },
@@ -160,6 +163,7 @@
               "mode": "off"
             }
           },
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -415,7 +419,7 @@
       "type": "timeseries"
     }
   ],
-  "refresh": false,
+  "refresh": "",
   "schemaVersion": 36,
   "style": "dark",
   "tags": [],
@@ -430,6 +434,6 @@
   "timezone": "",
   "title": "ZeebeDB dashboard",
   "uid": "PxLpZijnk",
-  "version": 4,
+  "version": 2,
   "weekStart": ""
 }
