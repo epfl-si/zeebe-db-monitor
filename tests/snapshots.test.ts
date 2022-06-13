@@ -1,7 +1,7 @@
 import 'mocha'
 import 'path'
 import { ZeebeDB } from '../src/zeebeDB';
-import {snapshotsWorkingDir} from "../src/folders";
+import {runtimeDir} from "../src/folders";
 
 /* Init chai shortcuts */
 const chai = require('chai')
@@ -14,7 +14,7 @@ describe('snapshots data integrity tests', () => {
     let zdb : ZeebeDB;
 
     before(function() {
-      zdb = new ZeebeDB(snapshotsWorkingDir);
+      zdb = new ZeebeDB(runtimeDir);
       expect(zdb.db.isOperational()).to.be.true
     })
 
