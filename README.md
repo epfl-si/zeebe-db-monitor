@@ -10,7 +10,7 @@ Monitor number of elements inside Zeebe DB
 ## Run
 - `docker build . -t zeebe-snapshots-monitor`
 
-- Find a snapshot path and set the correct ENV
+- Find a Zeebe data path and set the correct ENV
   - maybe `export ZEEBE_DATA_PATH=PhDAssess/docker/volumes/zeebe_data` ?
 - then, start the apps stack : `docker-compose up`
 - then, go to 
