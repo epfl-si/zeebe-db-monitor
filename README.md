@@ -1,3 +1,5 @@
+# Zeebe DB runtime monitor
+
 Monitor number of elements inside Zeebe DB
 
 ## Notable Tools
@@ -9,13 +11,12 @@ Monitor number of elements inside Zeebe DB
 - `docker build . -t zeebe-snapshots-monitor`
 
 - Find a snapshot path and set the correct ENV
-  - or `export ZEEBE_DATA_PATH=/home/del/workspace/PhDAssess/docker/volumes/zeebe_data`
-  - or `export ZEEBE_DATA_PATH=/home/del/workspace/tmp/snapshots_for_snapshots_monitor`
-- `docker-compose up`
+  - maybe `export ZEEBE_DATA_PATH=PhDAssess/docker/volumes/zeebe_data` ?
+- then, start the apps stack : `docker-compose up`
 - then, go to 
-  - 127.0.0.1:4000 for the dashboards
-  - 127.0.0.1:9090 for the metric query
-  - 127.0.0.1:8080/metrics for raw metrics
+  - 127.0.0.1:4000 for the grafana dashboards
+  - 127.0.0.1:9090 for the prometheus metric query
+  - 127.0.0.1:8080/metrics for the prometheus exporter inside the app, aka raw metrics
 
 ## Prometheus
 
