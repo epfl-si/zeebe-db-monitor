@@ -17,5 +17,4 @@ exec npm start
 #cp -rs --reflink=always /zeebe-data-ro/ /zeebe-data-rw/
 #lndir /zeebe-data-ro /zeebe-data-rw
 # inotifywait -rm -e CLOSE_WRITE --format "%w" source | stdbuf -o0 sed 's@/$@@'| xargs -n1 -I{} rsync -Rva {} destination
-
-
+# from https://stackoverflow.com/questions/66788981/can-i-use-cp-in-bash-to-watch-files-and-folders-and-upon-changes-copy-them-ot
