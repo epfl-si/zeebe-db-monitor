@@ -4,10 +4,6 @@ import { ZbColumnFamilies } from "./zbColumnFamilies";
 import { Buffer } from 'node:buffer'
 
 
-// TODO: assert we want current, because https://github.com/google/leveldb/blob/main/doc/index.md#snapshots
-// TODO: make it work with phd-assess local docker-compose
-// TODO: set a pod on phd-test
-
 /**
  * @param cfName The column family name as a fully typed-out string, e.g. "PROCESS_CACHE_BY_ID_AND_VERSION".
  *               See zbColumnFamilies.ts for the awaited values
