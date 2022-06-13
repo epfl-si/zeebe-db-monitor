@@ -130,8 +130,13 @@
       },
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
           "editorMode": "builder",
           "expr": "db_column_family_entries{column_family=\"JOBS\"}",
+          "hide": false,
           "instant": true,
           "key": "Q-15d0e7f0-3e99-4ef1-bd97-999851119c68-0",
           "legendFormat": "__auto",
@@ -140,18 +145,7 @@
         }
       ],
       "title": "Jobs",
-      "transformations": [
-        {
-          "id": "labelsToFields",
-          "options": {
-            "keepLabels": [
-              "column_family"
-            ],
-            "mode": "columns",
-            "valueLabel": "column_family"
-          }
-        }
-      ],
+      "transformations": [],
       "type": "timeseries"
     },
     {
@@ -448,7 +442,7 @@
       "type": "timeseries"
     }
   ],
-  "refresh": "30s",
+  "refresh": "10s",
   "schemaVersion": 36,
   "style": "dark",
   "tags": [],
@@ -456,13 +450,13 @@
     "list": []
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "ZeebeDB dashboard",
   "uid": "PxLpZijnk",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }
