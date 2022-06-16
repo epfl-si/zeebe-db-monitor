@@ -35,7 +35,7 @@ services:
       - 4000
     networks:
       - monitoring
-  zeebe-snapshots-monitor:
+  zeebe-db-monitor:
     build:
       context: .
     volumes:

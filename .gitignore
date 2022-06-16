@@ -3,4 +3,3 @@ node_modules/
 build
 ansible/ansible-tmp
 src/version.js
-working-data/
