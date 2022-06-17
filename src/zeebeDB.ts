@@ -2,6 +2,8 @@ import RocksDB from "rocksdb";
 import levelup, { LevelUp } from "levelup";
 import { ZbColumnFamilies } from "./zbColumnFamilies";
 import { Buffer } from 'node:buffer'
+import {runtimeDir} from "./folders";
+import assert from "node:assert/strict";
 
 
 /**
@@ -57,3 +59,7 @@ export class ZeebeDB {
     })
   }
 }
+
+export let zdb : ZeebeDB;
+zdb = new ZeebeDB(runtimeDir)
+assert.ok(zdb.db.isOperational())

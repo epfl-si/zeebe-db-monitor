@@ -1,6 +1,4 @@
-import {runtimeDir} from "./folders";
-import {ZeebeDB} from "./zeebeDB";
-import assert from "node:assert/strict";
+import {zdb} from "./zeebeDB";
 import {columnFamiliesNames} from "./zbColumnFamilies";
 
 const client = require("prom-client");
@@ -30,11 +28,6 @@ metricsRegistry.registerMetric(
     help: `Number of elements per column families inside the db`,
     labelNames: ['db_name', 'column_family'],
     async collect() {
-      console.debug(`Scraping runtime`)
-      let zdb : ZeebeDB;
-      zdb = new ZeebeDB(runtimeDir)
-      assert.ok(zdb.db.isOperational())
-
       // Set the mesure on all the column family
       columnFamiliesNames.map(async (columnFamilyName) => {
         let count: number|undefined;
