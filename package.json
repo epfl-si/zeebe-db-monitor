@@ -7,7 +7,7 @@
     "start": "genversion src/version.js && ts-node -r dotenv/config ./src/index.ts",
     "test": "mocha -r ts-node/register ./tests/**/*.test.ts",
     "build": "tsc -p . && genversion build/version.js",
-    "build-docker": "npm run build && docker build --tag phd-assess-notifier ."
+    "build-docker": "npm run build && docker build --tag zeebe-db-monitor . --no-cache"
   },
   "keywords": [],
   "author": "",
