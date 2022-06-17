@@ -7,7 +7,11 @@
     "start": "genversion src/version.js && ts-node -r dotenv/config ./src/index.ts",
     "test": "mocha -r ts-node/register ./tests/**/*.test.ts",
     "build": "tsc -p . && genversion build/version.js",
-    "build-docker": "npm run build && docker build --tag zeebe-db-monitor . --no-cache"
+    "build-docker": "npm run build && docker build --tag zeebe-db-monitor . --no-cache",
+    "docker-tag": "docker tag zeebe-db-monitor os-docker-registry.epfl.ch/phd-assess-test/zeebe-db-monitor:latest",
+    "oc-login": "oc whoami -t | docker login os-docker-registry.epfl.ch -u toto --password-stdin",
+    "openshift-push": "docker push os-docker-registry.epfl.ch/phd-assess-test/zeebe-db-monitor:latest",
+    "build-and-deploy-on-openshift-test": "npm-run-all oc-login build-docker docker-tag openshift-push"
   },
   "keywords": [],
   "author": "",
@@ -38,6 +42,7 @@
     "chai": "^4.3.4",
     "chai-fs": "^2.0.0",
     "mocha": "^9.0.3",
+    "npm-run-all": "^4.1.5",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.3"
   }

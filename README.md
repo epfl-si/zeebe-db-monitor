@@ -24,3 +24,7 @@ Monitor number of elements inside Zeebe DB
 - Read DB times
   - `rate(db_read_duration_seconds_sum[5m]) / rate(db_read_duration_seconds_count[5m])`
   - `histogram_quantile(0.9, sum(rate(db_read_duration_seconds_bucket[5m])) by (le))`
+
+## Deploy
+### Openshift test namespace
+`npm run build-and-deploy-on-openshift-test`
