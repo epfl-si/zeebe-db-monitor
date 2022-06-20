@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Use to create the symlink and start the app (tests)
-ln -s /zeebe-data-ro/* /zeebe-data-rw
+ln -sf /zeebe-data-ro/* /zeebe-data-rw
 
 # set the new RW folder as the one to use
 export ZEEBE_DATA_PATH=/zeebe-data-rw
