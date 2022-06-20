@@ -20,7 +20,7 @@ expressApp.use(limiter)
 // Prometheus metrics route
 expressApp.get('/metrics', async (req: Request, res: Response) => {
   // Start the HTTP request timer, saving a reference to the returned method
-  const end = metricsRegistry.getSingleMetric('db_read_duration_seconds').startTimer();
+  const end = metricsRegistry.getSingleMetric('zeebe_db_read_duration_seconds').startTimer();
 
   res.setHeader('Content-Type', metricsRegistry.contentType);
   res.send(await metricsRegistry.metrics());

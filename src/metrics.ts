@@ -16,7 +16,7 @@ client.collectDefaultMetrics({
 // Create a histogram of the time to read the DB
 metricsRegistry.registerMetric(
   new client.Histogram({
-    name: 'db_read_duration_seconds',
+    name: 'zeebe_db_read_duration_seconds',
     help: 'Duration to count the entries for all the columnFamilies in ZeebeDB in seconds',
   })
 );
@@ -24,7 +24,7 @@ metricsRegistry.registerMetric(
 // Register column families gauge
 metricsRegistry.registerMetric(
   new client.Gauge({
-    name: `db_column_family_entries`,
+    name: `zeebe_db_column_family_entries`,
     help: `Number of elements per column families inside the db`,
     labelNames: ['db_name', 'column_family'],
     async collect() {
