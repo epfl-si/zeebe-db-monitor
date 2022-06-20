@@ -91,7 +91,7 @@
               "options": {
                 "mode": "exclude",
                 "names": [
-                  "{__name__=\"db_column_family_entries\", column_family=\"JOBS\", db_name=\"runtime\", instance=\"zeebe-snapshots-monitor:8080\", job=\"zeebe-snapshots-monitor\"}"
+                  "{__name__=\"zeebe_db_column_family_entries\", column_family=\"JOBS\", db_name=\"runtime\", instance=\"zeebe-snapshots-monitor:8080\", job=\"zeebe-snapshots-monitor\"}"
                 ],
                 "prefix": "All except:",
                 "readOnly": true
@@ -135,7 +135,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "builder",
-          "expr": "db_column_family_entries{column_family=\"JOBS\"}",
+          "expr": "zeebe_db_column_family_entries{column_family=\"JOBS\"}",
           "hide": false,
           "instant": true,
           "key": "Q-15d0e7f0-3e99-4ef1-bd97-999851119c68-0",
@@ -229,7 +229,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "builder",
-          "expr": "db_column_family_entries{column_family=\"INCIDENTS\"}",
+          "expr": "zeebe_db_column_family_entries{column_family=\"INCIDENTS\"}",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,
@@ -324,7 +324,7 @@
         {
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "db_column_family_entries",
+          "expr": "zeebe_db_column_family_entries",
           "format": "time_series",
           "instant": true,
           "key": "Q-2738d53e-77ee-4689-85ae-8f45c3e44b28-0",
@@ -432,7 +432,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "builder",
-          "expr": "rate(db_read_duration_seconds_sum[5m]) / rate(db_read_duration_seconds_count[5m])",
+          "expr": "rate(zeebe_db_read_duration_seconds_sum[5m]) / rate(zeebe_db_read_duration_seconds_count[5m])",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
