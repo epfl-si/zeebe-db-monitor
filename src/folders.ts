@@ -7,7 +7,7 @@ import {readdir} from "fs";
 
 const zeebeDataPathEnv = process.env['ZEEBE_DATA_PATH'] ??
   (() => {
-    throw ("Missing env var ZEEBE_DATA_PATH that declare the base path to the snapshots folder, e.g.: ")
+    throw ("Missing env var ZEEBE_DATA_PATH that declare the base path to the db folder, e.g.: ")
   })()
 
 const zeebeFirstPartitionSubir = 'raft-partition/partitions/1'

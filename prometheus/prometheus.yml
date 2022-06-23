@@ -1,6 +1,6 @@
 global:
   scrape_interval: 15s
 scrape_configs:
-  - job_name: "zeebe-snapshots-monitor"
+  - job_name: "zeebe-db-monitor"
     static_configs:
-      - targets: ["zeebe-snapshots-monitor:8080"]
+      - targets: ["zeebe-db-monitor:8080"]
