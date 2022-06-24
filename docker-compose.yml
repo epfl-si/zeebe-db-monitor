@@ -39,7 +39,6 @@ services:
     build:
       context: .
     volumes:
-      - .:/app
       - ${ZEEBE_DATA_PATH}:/zeebe-data-ro:ro
     ports:
       - 8080:8080
