@@ -1,5 +1,7 @@
 #!/bin/sh
 
+mkdir -p /zeebe-data-rw  # for dev, as we may have an empty dir. In prod, it should be a volume
+
 # Use to create the symlink and start the app (tests)
 ln -sf /zeebe-data-ro/* /zeebe-data-rw
 
