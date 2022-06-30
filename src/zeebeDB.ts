@@ -2,8 +2,6 @@ import RocksDB from "rocksdb";
 import levelup, { LevelUp } from "levelup";
 import { ZbColumnFamilies } from "./zbColumnFamilies";
 import { Buffer } from 'node:buffer'
-import {runtimeDir} from "./folders";
-import assert from "node:assert/strict";
 
 
 /**
@@ -22,44 +20,36 @@ const int64ToBytes = (i : number) : Uint8Array => {
   return buf
 }
 
-export class ZeebeDB {
-  db: LevelUp<RocksDB>
+export let zdb : LevelUp<RocksDB>|null;
 
-  constructor(path: string) {
-    this.db = levelup(
-      RocksDB(path)
-      , {
-        createIfMissing: false,
-        readOnly: true,
-        infoLogLevel: 'debug'
-      },
-      (err: Error | undefined) => {
-        if (err) console.log(err)
-      }
-    )
-  }
-
-  walkColumnFamily(columnFamilyName: keyof typeof ZbColumnFamilies, callback: (key: string, value: string) => void): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.db.createReadStream({
-        gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
-        lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
-      })
-        .on('data', function (data) {
-          callback(data.key, data.value)
-        })
-        .on('error', function (err) {
-          reject(err)
-        })
-        .on('close', function () {
-        })
-        .on('end', function () {
-          resolve()
-        })
-    })
-  }
+export const initDBReader = async (path: string) => {
+  zdb = levelup(
+    RocksDB(path)
+    , {
+      createIfMissing: false,
+      readOnly: true,
+      infoLogLevel: 'debug'
+    }
+  )
 }
 
-export let zdb : ZeebeDB;
-zdb = new ZeebeDB(runtimeDir)
-assert.ok(zdb.db.isOperational())
+export const walkColumnFamily = (zdb: LevelUp<RocksDB>, columnFamilyName: keyof typeof ZbColumnFamilies, callback: (key: string, value: string) => void): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    zdb.createReadStream({
+      gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+      lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+    })
+      .on('data', function (data) {
+        callback(data.key, data.value)
+      })
+      .on('error', function (err) {
+        console.error(`Error when walking on ColumnFamily ${columnFamilyName}: ${err}`)
+        reject(err)
+      })
+      .on('close', function () {
+      })
+      .on('end', function () {
+        resolve()
+      })
+  })
+}

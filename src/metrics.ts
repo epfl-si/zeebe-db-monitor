@@ -1,5 +1,6 @@
-import {zdb} from "./zeebeDB";
+import {initDBReader, walkColumnFamily, zdb} from "./zeebeDB";
 import {columnFamiliesNames} from "./zbColumnFamilies";
+import {runtimeDir} from "./folders";
 
 const client = require("prom-client");
 
@@ -22,9 +23,11 @@ new client.Gauge({
   labelNames: ['db_name', 'column_family'],
   async collect() {
     // Set the mesure on all the column family
+    if (!zdb) await initDBReader(runtimeDir)
+
     columnFamiliesNames.map(async (columnFamilyName) => {
       let count: number|undefined;
-      await zdb.walkColumnFamily(columnFamilyName, function() {
+      await walkColumnFamily(zdb!, columnFamilyName, function() {
         !count ? count = 1 : count++;
       })
       if (count) {

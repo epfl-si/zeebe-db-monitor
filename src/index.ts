@@ -8,6 +8,6 @@ expressApp.listen(8080, () => console.log('Server metrics are currently exposed 
 process.on( 'SIGINT', function() {
   console.log( "\nGracefully shutting down from SIGINT (Ctrl-C)" );
   // some other closing procedures go here
-  zdb.db.close()
+  zdb?.close()
   process.exit( );
 })
