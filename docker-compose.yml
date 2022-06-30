@@ -21,9 +21,11 @@ services:
   grafana:
     image: grafana/grafana
     container_name: grafana
+    entrypoint: ["bash", "-c", "wget -P /etc/grafana/provisioning/dashboards https://raw.githubusercontent.com/epfl-si/external-noc/master/roles/grafana/files/provisioning/dashboards/PhDAssess-ZeebeDB.json; /run.sh"]
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/dashboards/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+      - ./grafana/provisioning/dashboards/nodejs_application_dashboard.json:/etc/grafana/provisioning/dashboards/nodejs_application_dashboard.json
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
     environment:
       - GF_AUTH_DISABLE_LOGIN_FORM=true
