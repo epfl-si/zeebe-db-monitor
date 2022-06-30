@@ -20,12 +20,19 @@ expressApp.use(limiter)
 
 // Prometheus metrics route
 expressApp.get('/metrics', async (req: Request, res: Response) => {
-  // Start the HTTP request timer, saving a reference to the returned method
-  const end = zeebe_db_read_duration_seconds.startTimer();
+  try {
 
-  res.setHeader('Content-Type', register.contentType);
-  res.send(await register.metrics());
+    // Start the HTTP request timer, saving a reference to the returned method
+    const end = zeebe_db_read_duration_seconds.startTimer();
 
-  // End timer and add labels
-  end();
+    res.setHeader('Content-Type', register.contentType);
+    res.send(await register.metrics());
+
+    // End timer and add labels
+    end();
+  } catch (e) {
+    console.error(e)   // send it back to console, so we can debug it
+    res.status(500)
+    res.json({ message: `Error: ${e}`})
+  }
 });
