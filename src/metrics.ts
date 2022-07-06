@@ -22,6 +22,7 @@ new client.Gauge({
   help: `Number of elements per column families inside the db`,
   labelNames: ['db_name', 'column_family'],
   async collect() {
+    this.reset()  // remove all values from last iteration
     // Set the mesure on all the column family
     if (!zdb) await initDBReader(runtimeDir)
 
