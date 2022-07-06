@@ -26,7 +26,7 @@ new client.Gauge({
     // Set the mesure on all the column family
     if (!zdb) await initDBReader(runtimeDir)
 
-    columnFamiliesNames.map(async (columnFamilyName) => {
+    for (let columnFamilyName of columnFamiliesNames) {
       let count: number|undefined;
       await walkColumnFamily(zdb!, columnFamilyName, function() {
         !count ? count = 1 : count++;
@@ -36,6 +36,6 @@ new client.Gauge({
           {db_name: 'runtime', column_family: columnFamilyName}, count
         );
       }
-    })
+    }
   }
 })
