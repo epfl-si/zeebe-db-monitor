@@ -1,8 +1,8 @@
 import {initDBReader, walkColumnFamily, zdb} from "./zeebeDB";
 import {columnFamiliesNames} from "./zbColumnFamilies";
 import {runtimeDir} from "./folders";
+import {client} from "./promClient";
 
-const client = require("prom-client");
 
 client.collectDefaultMetrics({
   app: 'zeebe-db-monitor',
