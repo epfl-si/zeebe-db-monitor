@@ -1,6 +1,5 @@
-import {ZDB} from "./zeebeDB";
+import {zdb} from "./zeebeDB";
 import {client} from "./promClient";
-import {runtimeDir} from "./folders";
 
 
 client.collectDefaultMetrics({
@@ -22,7 +21,6 @@ new client.Gauge({
   labelNames: ['db_name', 'column_family'],
   async collect() {
     this.reset()  // remove all values from last iteration
-    const zdb = new ZDB(runtimeDir)
 
     // Set the mesure on all the column family
     const columnFamiliesCount = await zdb.ColumnFamiliesCount()
@@ -41,7 +39,6 @@ new client.Gauge({
   labelNames: ['db_name', 'error_message'],
   async collect() {
     this.reset()  // remove all values from last iteration
-    const zdb = new ZDB(runtimeDir)
 
     const incidentCountPerMessage = await zdb.getIncidentsMessageCount()
 

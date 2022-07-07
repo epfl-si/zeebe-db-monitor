@@ -3,6 +3,15 @@ import levelup from "levelup";
 import {columnFamiliesNames, ZbColumnFamilies} from "./zbColumnFamilies";
 import { Buffer } from 'node:buffer'
 import {unpack} from "msgpackr";
+import StreamToAsyncIterator from "stream-to-async-iterator"
+import { Readable } from "stream";
+import {runtimeDir} from "./folders";
+
+
+type ZeebeStreamData = {
+  key: string
+  value: Buffer
+}
 
 /**
  * @param cfName The column family name as a fully typed-out string, e.g. "PROCESS_CACHE_BY_ID_AND_VERSION".
@@ -38,25 +47,15 @@ export class ZDB extends levelup {
     await this.open()
   }
 
-  async walkColumnFamily(columnFamilyName: keyof typeof ZbColumnFamilies, callback: (key: string, value: Buffer) => void): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      this.createReadStream({
-        gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
-        lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
-      })
-        .on('data', function (data) {
-          callback(data.key, data.value)
+  async walkColumnFamily(columnFamilyName: keyof typeof ZbColumnFamilies) {
+    return new StreamToAsyncIterator<ZeebeStreamData>(
+      Readable.from(
+        this.createReadStream({
+          gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+          lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
         })
-        .on('error', function (err) {
-          console.error(`Error when walking on ColumnFamily ${columnFamilyName}`, err)
-          reject(err)
-        })
-        .on('close', function () {
-        })
-        .on('end', function () {
-          resolve()
-        })
-    })
+      )
+    )
   }
 
   /*
@@ -64,16 +63,17 @@ export class ZDB extends levelup {
    * Get only the ones with at least a value
    */
   async ColumnFamiliesCount() {
-    await this.refresh()
+    //await this.refresh()
 
     try {
       const columFamiliesCounted = new Map<string, number>()
 
       for (let columnFamilyName of columnFamiliesNames) {
         let count: number | undefined;
-        await this.walkColumnFamily(columnFamilyName, function () {
+
+        for await (const row of await this.walkColumnFamily(columnFamilyName)) {
           !count ? count = 1 : count++;
-        })
+        }
 
         count && columFamiliesCounted.set(columnFamilyName, count)
       }
@@ -87,15 +87,15 @@ export class ZDB extends levelup {
   }
 
   async getIncidentsMessageCount() {
-    await this.refresh()
+    //await this.refresh()
 
     try {
       const incidentMessages: string[] = []
 
-      await this.walkColumnFamily('INCIDENTS', function(key, value) {
-        const unpackedValue = unpack(value)
+      for await (const row of await this.walkColumnFamily('INCIDENTS')) {
+        const unpackedValue = unpack(row.value)
         incidentMessages.push(unpackedValue?.incidentRecord?.errorMessage)
-      })
+      }
 
       const incidentCountPerMessage = new Map<string, number>()
 
@@ -115,3 +115,5 @@ export class ZDB extends levelup {
     }
   }
 }
+
+export const zdb = new ZDB(runtimeDir)

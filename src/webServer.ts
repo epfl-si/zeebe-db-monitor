@@ -2,6 +2,7 @@ import {Request, Response} from "express";
 import { zeebe_db_read_duration_seconds} from "./metrics";
 import rateLimit from 'express-rate-limit'
 import {register} from "prom-client";
+import {zdb} from "./zeebeDB";
 
 const express = require('express');
 export const expressApp = express();
@@ -24,6 +25,9 @@ expressApp.get('/metrics', async (req: Request, res: Response) => {
 
     // Start the HTTP request timer, saving a reference to the returned method
     const end = zeebe_db_read_duration_seconds.startTimer();
+
+    // refresh the db before collecting the metrics
+    await zdb.refresh()
 
     res.setHeader('Content-Type', register.contentType);
     res.send(await register.metrics());
