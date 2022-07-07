@@ -27,7 +27,7 @@ export class ZDB extends levelup {
       {
         createIfMissing: false,
         readOnly: true,
-        infoLogLevel: 'warn'
+        infoLogLevel: 'error'
       }
     )
   }
