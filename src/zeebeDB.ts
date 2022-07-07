@@ -63,8 +63,6 @@ export class ZDB extends levelup {
    * Get only the ones with at least a value
    */
   async ColumnFamiliesCount() {
-    //await this.refresh()
-
     try {
       const columFamiliesCounted = new Map<string, number>()
 
@@ -87,8 +85,6 @@ export class ZDB extends levelup {
   }
 
   async getIncidentsMessageCount() {
-    //await this.refresh()
-
     try {
       const incidentMessages: string[] = []
 
