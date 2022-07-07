@@ -25,12 +25,31 @@ new client.Gauge({
     const zdb = new ZDB(runtimeDir)
 
     // Set the mesure on all the column family
-    const columnFamiliesCount = await zdb.countColumnFamilies()
+    const columnFamiliesCount = await zdb.ColumnFamiliesCount()
 
     columnFamiliesCount?.forEach((columnFamilyCount, columnFamiliesName) =>
       this.set(
         { db_name: 'runtime', column_family: columnFamiliesName }, columnFamilyCount
       )
     )
+  }
+})
+
+new client.Gauge({
+  name: `zeebe_db_column_family_incident_entries`,
+  help: `Number of incidents per errorMessage inside the db`,
+  labelNames: ['db_name', 'error_message'],
+  async collect() {
+    this.reset()  // remove all values from last iteration
+    const zdb = new ZDB(runtimeDir)
+
+    const incidentCountPerMessage = await zdb.getIncidentsMessageCount()
+
+    //set the measure
+    incidentCountPerMessage?.forEach((count, message) => {
+      this.set(
+        {db_name: 'runtime', error_message: message}, count
+      );
+    })
   }
 })

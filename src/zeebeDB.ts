@@ -2,7 +2,7 @@ import RocksDB from "rocksdb";
 import levelup from "levelup";
 import {columnFamiliesNames, ZbColumnFamilies} from "./zbColumnFamilies";
 import { Buffer } from 'node:buffer'
-
+import {unpack} from "msgpackr";
 
 /**
  * @param cfName The column family name as a fully typed-out string, e.g. "PROCESS_CACHE_BY_ID_AND_VERSION".
@@ -32,18 +32,39 @@ export class ZDB extends levelup {
     )
   }
 
-  async forceRefresh() {
+  async refresh() {
     // force refresh of the db
     if (this.isOpen()) await this.close()
     await this.open()
+  }
+
+  async walkColumnFamily(columnFamilyName: keyof typeof ZbColumnFamilies, callback: (key: string, value: Buffer) => void): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      this.createReadStream({
+        gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+        lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+      })
+        .on('data', function (data) {
+          callback(data.key, data.value)
+        })
+        .on('error', function (err) {
+          console.error(`Error when walking on ColumnFamily ${columnFamilyName}`, err)
+          reject(err)
+        })
+        .on('close', function () {
+        })
+        .on('end', function () {
+          resolve()
+        })
+    })
   }
 
   /*
    * Get a Map of column families as (columnFamilyName, count)
    * Get only the ones with at least a value
    */
-  async countColumnFamilies() {
-    await this.forceRefresh()
+  async ColumnFamiliesCount() {
+    await this.refresh()
 
     try {
       const columFamiliesCounted = new Map<string, number>()
@@ -59,29 +80,38 @@ export class ZDB extends levelup {
 
       return columFamiliesCounted
     } catch (e) {
+      console.error(e)
       // get all or nothing if an error raised
       return new Map<string, number>()
     }
   }
 
-  async walkColumnFamily(columnFamilyName: keyof typeof ZbColumnFamilies, callback: (key: string, value: string) => void): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      this.createReadStream({
-        gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
-        lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+  async getIncidentsMessageCount() {
+    await this.refresh()
+
+    try {
+      const incidentMessages: string[] = []
+
+      await this.walkColumnFamily('INCIDENTS', function(key, value) {
+        const unpackedValue = unpack(value)
+        incidentMessages.push(unpackedValue?.incidentRecord?.errorMessage)
       })
-        .on('data', function (data) {
-          callback(data.key, data.value)
-        })
-        .on('error', function (err) {
-          console.error(`Error when walking on ColumnFamily ${columnFamilyName}: ${err}`)
-          reject(err)
-        })
-        .on('close', function () {
-        })
-        .on('end', function () {
-          resolve()
-        })
-    })
+
+      const incidentCountPerMessage = new Map<string, number>()
+
+      // group by errorMessage and set the mesure
+      incidentMessages.forEach((message) => {
+        // add to Map
+        if (!incidentCountPerMessage.has(message)) incidentCountPerMessage.set(message, 0)
+        incidentCountPerMessage.set(message, incidentCountPerMessage.get(message)! +1)
+      })
+
+      return incidentCountPerMessage
+
+    } catch (e) {
+      console.error(e)
+      // get all or nothing if an error raised
+      return new Map<string, number>()
+    }
   }
 }
