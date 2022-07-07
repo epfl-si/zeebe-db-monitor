@@ -44,7 +44,7 @@ export class ZDB extends levelup {
   async refresh() {
     // force refresh of the db
     if (this.isOpen()) await this.close()
-    await this.open()
+    return this.open()
   }
 
   async walkColumnFamily(columnFamilyName: keyof typeof ZbColumnFamilies) {
