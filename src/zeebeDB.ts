@@ -1,6 +1,6 @@
 import RocksDB from "rocksdb";
-import levelup, { LevelUp } from "levelup";
-import { ZbColumnFamilies } from "./zbColumnFamilies";
+import levelup from "levelup";
+import {columnFamiliesNames, ZbColumnFamilies} from "./zbColumnFamilies";
 import { Buffer } from 'node:buffer'
 
 
@@ -20,36 +20,68 @@ const int64ToBytes = (i : number) : Uint8Array => {
   return buf
 }
 
-export let zdb : LevelUp<RocksDB>|null;
+export class ZDB extends levelup {
+  constructor(path: string) {
+    super(
+      RocksDB(path),
+      {
+        createIfMissing: false,
+        readOnly: true,
+        infoLogLevel: 'debug'
+      }
+    )
+  }
 
-export const initDBReader = async (path: string) => {
-  zdb = levelup(
-    RocksDB(path)
-    , {
-      createIfMissing: false,
-      readOnly: true,
-      infoLogLevel: 'debug'
+  async forceRefresh() {
+    // force refresh of the db
+    if (this.isOpen()) await this.close()
+    await this.open()
+  }
+
+  /*
+   * Get a Map of column families as (columnFamilyName, count)
+   * Get only the ones with at least a value
+   */
+  async countColumnFamilies() {
+    await this.forceRefresh()
+
+    try {
+      const columFamiliesCounted = new Map<string, number>()
+
+      for (let columnFamilyName of columnFamiliesNames) {
+        let count: number | undefined;
+        await this.walkColumnFamily(columnFamilyName, function () {
+          !count ? count = 1 : count++;
+        })
+
+        count && columFamiliesCounted.set(columnFamilyName, count)
+      }
+
+      return columFamiliesCounted
+    } catch (e) {
+      // get all or nothing if an error raised
+      return new Map<string, number>()
     }
-  )
-}
+  }
 
-export const walkColumnFamily = (zdb: LevelUp<RocksDB>, columnFamilyName: keyof typeof ZbColumnFamilies, callback: (key: string, value: string) => void): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    zdb.createReadStream({
-      gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
-      lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+  async walkColumnFamily(columnFamilyName: keyof typeof ZbColumnFamilies, callback: (key: string, value: string) => void): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      this.createReadStream({
+        gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+        lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+      })
+        .on('data', function (data) {
+          callback(data.key, data.value)
+        })
+        .on('error', function (err) {
+          console.error(`Error when walking on ColumnFamily ${columnFamilyName}: ${err}`)
+          reject(err)
+        })
+        .on('close', function () {
+        })
+        .on('end', function () {
+          resolve()
+        })
     })
-      .on('data', function (data) {
-        callback(data.key, data.value)
-      })
-      .on('error', function (err) {
-        console.error(`Error when walking on ColumnFamily ${columnFamilyName}: ${err}`)
-        reject(err)
-      })
-      .on('close', function () {
-      })
-      .on('end', function () {
-        resolve()
-      })
-  })
+  }
 }

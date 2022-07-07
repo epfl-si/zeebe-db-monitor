@@ -1,7 +1,6 @@
-import {initDBReader, walkColumnFamily, zdb} from "./zeebeDB";
-import {columnFamiliesNames} from "./zbColumnFamilies";
-import {runtimeDir} from "./folders";
+import {ZDB} from "./zeebeDB";
 import {client} from "./promClient";
+import {runtimeDir} from "./folders";
 
 
 client.collectDefaultMetrics({
@@ -23,19 +22,15 @@ new client.Gauge({
   labelNames: ['db_name', 'column_family'],
   async collect() {
     this.reset()  // remove all values from last iteration
-    // Set the mesure on all the column family
-    if (!zdb) await initDBReader(runtimeDir)
+    const zdb = new ZDB(runtimeDir)
 
-    for (let columnFamilyName of columnFamiliesNames) {
-      let count: number|undefined;
-      await walkColumnFamily(zdb!, columnFamilyName, function() {
-        !count ? count = 1 : count++;
-      })
-      if (count) {
-        this.set(
-          {db_name: 'runtime', column_family: columnFamilyName}, count
-        );
-      }
-    }
+    // Set the mesure on all the column family
+    const columnFamiliesCount = await zdb.countColumnFamilies()
+
+    columnFamiliesCount?.forEach((columnFamilyCount, columnFamiliesName) =>
+      this.set(
+        { db_name: 'runtime', column_family: columnFamiliesName }, columnFamilyCount
+      )
+    )
   }
 })
