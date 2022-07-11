@@ -48,7 +48,6 @@ export class ZDB extends levelup {
     columnFamilyName: keyof typeof ZbColumnFamilies,
     walkType: 'key'|'keyValue'|'value' = 'key') {
 
-    console.log(`walkingFamily ${columnFamilyName}...`)
     if (!this.open()) throw `db is not open, skipping`
 
     if (walkType === 'keyValue') {
