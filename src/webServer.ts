@@ -33,13 +33,12 @@ expressApp.get('/metrics', async (req: Request, res: Response) => {
 
   try {
     // get metrics one after one, that's better for zb
-    let metrics: string[] = ['\n']
+    let metrics: string[] = []
+    metrics.push(await defaultMetricsRegistry.metrics())
     metrics.push(await zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_entries'))
-    metrics.push('\n\n')  // gonna add some formatting candy
     metrics.push(await zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_incident_entries'))
-    metrics.push('\n')
 
-    res.send(await defaultMetricsRegistry.metrics() + metrics.join());
+    res.send(`${metrics.join('\n\n')}\n`);
 
     // End timer and add labels
     end();
