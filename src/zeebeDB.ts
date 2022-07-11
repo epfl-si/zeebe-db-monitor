@@ -6,7 +6,10 @@ import {unpack} from "msgpackr";
 import StreamToAsyncIterator from "stream-to-async-iterator"
 import { Readable } from "stream";
 import {runtimeDir} from "./folders";
+import memoizee from 'memoizee';
 
+
+const ZDB_READ_CACHE_TIMEOUT = process.env.ZDB_READ_CACHE_TIMEOUT ? parseInt(process.env.ZDB_READ_CACHE_TIMEOUT) : 60000 // default to 1 minutes
 
 type ZeebeStreamData = {
   key: string
@@ -41,21 +44,41 @@ export class ZDB extends levelup {
     )
   }
 
-  async refresh() {
-    // force refresh of the db
-    if (this.isOpen()) await this.close()
-    return this.open()
-  }
+  async walkColumnFamily(
+    columnFamilyName: keyof typeof ZbColumnFamilies,
+    walkType: 'key'|'keyValue'|'value' = 'key') {
 
-  async walkColumnFamily(columnFamilyName: keyof typeof ZbColumnFamilies) {
-    return new StreamToAsyncIterator<ZeebeStreamData>(
-      Readable.from(
-        this.createReadStream({
-          gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
-          lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
-        })
+    console.log(`walkingFamily ${columnFamilyName}...`)
+    if (!this.open()) throw `db is not open, skipping`
+
+    if (walkType === 'keyValue') {
+      return new StreamToAsyncIterator<ZeebeStreamData>(
+        Readable.from(
+          this.createReadStream({
+            gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+            lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+          })
+        )
       )
-    )
+    } else if (walkType === 'value') {
+      return new StreamToAsyncIterator<ZeebeStreamData>(
+        Readable.from(
+          this.createValueStream({
+            gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+            lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+          })
+        )
+      )
+    } else {
+      return new StreamToAsyncIterator<ZeebeStreamData>(
+        Readable.from(
+          this.createKeyStream({
+            gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+            lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+          })
+        )
+      )
+    }
   }
 
   /*
@@ -69,7 +92,7 @@ export class ZDB extends levelup {
       for (let columnFamilyName of columnFamiliesNames) {
         let count: number | undefined;
 
-        for await (const row of await this.walkColumnFamily(columnFamilyName)) {
+        for await (const row of await this.walkColumnFamily(columnFamilyName, 'key')) {
           !count ? count = 1 : count++;
         }
 
@@ -84,11 +107,18 @@ export class ZDB extends levelup {
     }
   }
 
-  async getIncidentsMessageCount() {
+  memoizedColumnFamiliesCount = memoizee(
+    this.ColumnFamiliesCount,
+    {
+      maxAge: ZDB_READ_CACHE_TIMEOUT,
+    }
+  )
+
+  async incidentsMessageCount() {
     try {
       const incidentMessages: string[] = []
 
-      for await (const row of await this.walkColumnFamily('INCIDENTS')) {
+      for await (const row of await this.walkColumnFamily('INCIDENTS', 'keyValue')) {
         const unpackedValue = unpack(row.value)
         incidentMessages.push(unpackedValue?.incidentRecord?.errorMessage)
       }
@@ -110,6 +140,13 @@ export class ZDB extends levelup {
       return new Map<string, number>()
     }
   }
+
+  memoizedIncidentsMessageCount = memoizee(
+    this.incidentsMessageCount,
+    {
+      maxAge: ZDB_READ_CACHE_TIMEOUT,
+    }
+  )
 }
 
 export const zdb = new ZDB(runtimeDir)
