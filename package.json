@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "genversion src/version.js && ts-node -r dotenv/config ./src/index.ts",
-    "test": "mocha -r ts-node/register ./tests/**/*.test.ts",
+    "test": "mocha ./tests/**/*.test.ts",
     "build": "tsc -p . && genversion build/version.js",
     "build-docker": "npm run build && docker build --tag zeebe-db-monitor . --no-cache",
     "docker-tag": "docker tag zeebe-db-monitor os-docker-registry.epfl.ch/phd-assess-test/zeebe-db-monitor:latest",
