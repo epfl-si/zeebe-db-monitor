@@ -1,11 +1,10 @@
 import RocksDB from "rocksdb";
-import levelup from "levelup";
-import {columnFamiliesNames, ZbColumnFamilies} from "./zbColumnFamilies";
+import levelup, {LevelUp} from "levelup";
+import {columnFamiliesNames, ZbColumnFamilies} from "./zbColumnFamilies.js";
 import { Buffer } from 'node:buffer'
 import {unpack} from "msgpackr";
-import StreamToAsyncIterator from "stream-to-async-iterator"
 import { Readable } from "stream";
-import {runtimeDir} from "./folders";
+import {setSymlink, runtimeDir} from "./folders.js";
 import memoizee from 'memoizee';
 
 
@@ -32,10 +31,31 @@ const int64ToBytes = (i : number) : Uint8Array => {
   return buf
 }
 
-export class ZDB extends levelup {
-  constructor(path: string) {
-    super(
-      RocksDB(path),
+let _zdbInstance: LevelUp<RocksDB>
+
+async function initZDB() {
+  if (_zdbInstance && _zdbInstance.isOpen()) return
+
+  try {
+    console.debug(`${new Date().toISOString()} Instancing the levelup reader`)
+    _zdbInstance = levelup(
+      RocksDB(runtimeDir),
+      {
+        createIfMissing: false,
+        readOnly: true,
+        infoLogLevel: 'error'
+      }
+    )
+  } catch (e: any) {
+    console.error(`Creating the RocksDB reader crashed : ${e.message}`)
+    // TODO: check what kind of error we got
+    // try to rebuild the symlink for *all* cases at the moment
+    await setSymlink()
+
+    // second try. If not, let the error raise to the main application
+    console.debug("Instancing a second time the levelup reader")
+    _zdbInstance = levelup(
+      RocksDB(runtimeDir),
       {
         createIfMissing: false,
         readOnly: true,
@@ -43,109 +63,107 @@ export class ZDB extends levelup {
       }
     )
   }
-
-  async walkColumnFamily(
-    columnFamilyName: keyof typeof ZbColumnFamilies,
-    walkType: 'key'|'keyValue'|'value' = 'key') {
-
-    if (!this.open()) throw `db is not open, skipping`
-
-    if (walkType === 'keyValue') {
-      return new StreamToAsyncIterator<ZeebeStreamData>(
-        Readable.from(
-          this.createReadStream({
-            gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
-            lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
-          })
-        )
-      )
-    } else if (walkType === 'value') {
-      return new StreamToAsyncIterator<ZeebeStreamData>(
-        Readable.from(
-          this.createValueStream({
-            gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
-            lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
-          })
-        )
-      )
-    } else {
-      return new StreamToAsyncIterator<ZeebeStreamData>(
-        Readable.from(
-          this.createKeyStream({
-            gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
-            lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
-          })
-        )
-      )
-    }
-  }
-
-  /*
-   * Get a Map of column families as (columnFamilyName, count)
-   * Get only the ones with at least a value
-   */
-  async ColumnFamiliesCount() {
-    try {
-      const columFamiliesCounted = new Map<string, number>()
-
-      for (let columnFamilyName of columnFamiliesNames) {
-        let count: number | undefined;
-
-        for await (const row of await this.walkColumnFamily(columnFamilyName, 'key')) {
-          !count ? count = 1 : count++;
-        }
-
-        count && columFamiliesCounted.set(columnFamilyName, count)
-      }
-
-      return columFamiliesCounted
-    } catch (e) {
-      console.error(e)
-      // get all or nothing if an error raised
-      return new Map<string, number>()
-    }
-  }
-
-  memoizedColumnFamiliesCount = memoizee(
-    this.ColumnFamiliesCount,
-    {
-      maxAge: ZDB_READ_CACHE_TIMEOUT,
-    }
-  )
-
-  async incidentsMessageCount() {
-    try {
-      const incidentMessages: string[] = []
-
-      for await (const row of await this.walkColumnFamily('INCIDENTS', 'keyValue')) {
-        const unpackedValue = unpack(row.value)
-        incidentMessages.push(unpackedValue?.incidentRecord?.errorMessage)
-      }
-
-      const incidentCountPerMessage = new Map<string, number>()
-
-      // group by errorMessage and set the mesure
-      incidentMessages.forEach((message) => {
-        // add to Map
-        if (!incidentCountPerMessage.has(message)) incidentCountPerMessage.set(message, 0)
-        incidentCountPerMessage.set(message, incidentCountPerMessage.get(message)! +1)
-      })
-
-      return incidentCountPerMessage
-
-    } catch (e) {
-      console.error(e)
-      // get all or nothing if an error raised
-      return new Map<string, number>()
-    }
-  }
-
-  memoizedIncidentsMessageCount = memoizee(
-    this.incidentsMessageCount,
-    {
-      maxAge: ZDB_READ_CACHE_TIMEOUT,
-    }
-  )
 }
 
-export const zdb = new ZDB(runtimeDir)
+export async function walkColumnFamily(
+  columnFamilyName: keyof typeof ZbColumnFamilies,
+  walkType: 'key'|'keyValue'|'value' = 'key') {
+
+  await initZDB()
+
+  if (walkType === 'keyValue') {
+    return Readable.from(
+        _zdbInstance.createReadStream({
+          gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+          lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+        })
+    )
+  } else if (walkType === 'value') {
+    return Readable.from(
+        _zdbInstance.createValueStream({
+          gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+          lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+        })
+    )
+  } else {
+    return Readable.from(
+        _zdbInstance.createKeyStream({
+          gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+          lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+        })
+    )
+  }
+}
+
+/*
+ * Get a Map of column families as (columnFamilyName, count)
+ * Get only the ones with at least a value
+ */
+export async function ColumnFamiliesCount() {
+  try {
+    await initZDB()
+
+    const columFamiliesCounted = new Map<string, number>()
+
+    for (let columnFamilyName of columnFamiliesNames) {
+      let count: number | undefined;
+
+      for await (const row of await walkColumnFamily(columnFamilyName, 'key')) {
+        !count ? count = 1 : count++;
+      }
+
+      count && columFamiliesCounted.set(columnFamilyName, count)
+    }
+
+    return columFamiliesCounted
+  } catch (e) {
+    console.error(e)
+    // get all or nothing if an error raised
+    return new Map<string, number>()
+  }
+}
+
+export const memoizedColumnFamiliesCount = memoizee(
+  ColumnFamiliesCount,
+  {
+    maxAge: ZDB_READ_CACHE_TIMEOUT,
+  }
+)
+
+async function incidentsMessageCount() {
+  try {
+    const incidentMessages: string[] = []
+
+    for await (const row of await walkColumnFamily('INCIDENTS', 'keyValue')) {
+      const unpackedValue = unpack(row.value)
+      incidentMessages.push(unpackedValue?.incidentRecord?.errorMessage)
+    }
+
+    const incidentCountPerMessage = new Map<string, number>()
+
+    // group by errorMessage and set the mesure
+    incidentMessages.forEach((message) => {
+      // add to Map
+      if (!incidentCountPerMessage.has(message)) incidentCountPerMessage.set(message, 0)
+      incidentCountPerMessage.set(message, incidentCountPerMessage.get(message)! +1)
+    })
+
+    return incidentCountPerMessage
+
+  } catch (e) {
+    console.error(e)
+    // get all or nothing if an error raised
+    return new Map<string, number>()
+  }
+}
+
+export const memoizedIncidentsMessageCount = memoizee(
+  incidentsMessageCount,
+  {
+    maxAge: ZDB_READ_CACHE_TIMEOUT,
+  }
+)
+
+export async function closeDB() {
+  _zdbInstance && _zdbInstance.isOpen() && await _zdbInstance.close()
+}

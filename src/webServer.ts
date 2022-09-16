@@ -2,13 +2,12 @@ import {Request, Response} from "express";
 import {
   defaultMetricsRegistry, zeebe_db_read_duration_seconds,
   zeebeMetricsRegistry
-} from "./metrics";
+} from "./metrics.js";
 import rateLimit from 'express-rate-limit'
 import {register} from "prom-client";
-import {ZDB} from "./zeebeDB";
-import {runtimeDir} from "./folders";
+import {closeDB} from "./zeebeDB.js";
 
-const express = require('express');
+import express from "express";
 export const expressApp = express();
 
 /**
@@ -25,13 +24,10 @@ expressApp.use(limiter)
 
 // Prometheus metrics route
 expressApp.get('/metrics', async (req: Request, res: Response) => {
-  // Start the HTTP request timer, saving a reference to the returned method
-  const end = zeebe_db_read_duration_seconds.startTimer();
-  res.setHeader('Content-Type', register.contentType);
-
-  const zdb = new ZDB(runtimeDir)  // open the db
-
   try {
+    // Start the HTTP request timer, saving a reference to the returned method
+    const end = zeebe_db_read_duration_seconds.startTimer();
+    res.setHeader('Content-Type', register.contentType);
     // get metrics one after one, that's better for zb
     let metrics: string[] = []
     metrics.push(await defaultMetricsRegistry.metrics())
@@ -43,10 +39,10 @@ expressApp.get('/metrics', async (req: Request, res: Response) => {
     // End timer and add labels
     end();
   } catch (e) {
-    console.error(e)   // send it back to console, so we can debug it
+    console.error(`Error while getting metrics : ${e}`)   // send it back to console, so we can debug it
     res.status(500)
     res.json({ message: `Error: ${e}`})
   } finally {
-    await zdb.close()
+    await closeDB()
   }
 });

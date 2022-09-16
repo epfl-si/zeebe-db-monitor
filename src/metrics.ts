@@ -1,15 +1,13 @@
-import {zdb} from "./zeebeDB";
-import {client} from "./promClient";
+import {client} from "./promClient.js";
+import {memoizedColumnFamiliesCount, memoizedIncidentsMessageCount} from "./zeebeDB.js";
 
 export const defaultMetricsRegistry = new client.Registry()
 export const zeebeMetricsRegistry = new client.Registry()
 
 client.collectDefaultMetrics({
-  app: 'zeebe-db-monitor',
-  prefix: '',
-  timeout: 10000,
-  gcDurationBuckets: [0.001, 0.01, 0.1, 1, 2, 5],
   register: defaultMetricsRegistry,
+  prefix: '',
+  gcDurationBuckets: [0.001, 0.01, 0.1, 1, 2, 5],
 });
 
 // Create a histogram of the time to read the DB
@@ -27,9 +25,9 @@ zeebeMetricsRegistry.registerMetric(
       this.reset()  // remove all values from last iteration
 
       // Set the mesure on all the column family
-      const columnFamiliesCount = await zdb.memoizedColumnFamiliesCount()
+      const columnFamiliesCount = await memoizedColumnFamiliesCount()
 
-      columnFamiliesCount?.forEach((columnFamilyCount, columnFamiliesName) =>
+      columnFamiliesCount?.forEach((columnFamilyCount: number, columnFamiliesName: string) =>
         this.set(
           { db_name: 'runtime', column_family: columnFamiliesName }, columnFamilyCount
         )
@@ -46,10 +44,10 @@ zeebeMetricsRegistry.registerMetric(
     async collect() {
       this.reset()  // remove all values from last iteration
 
-      const incidentCountPerMessage = await zdb.memoizedIncidentsMessageCount()
+      const incidentCountPerMessage = await memoizedIncidentsMessageCount()
 
       //set the measure
-      incidentCountPerMessage?.forEach((count, message) => {
+      incidentCountPerMessage?.forEach((count: number, message: string) => {
         this.set(
           {db_name: 'runtime', error_message: message}, count
         );
