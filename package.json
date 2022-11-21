@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
-    "start": "genversion src/version.js && ts-node -r dotenv/config ./src/index.ts",
+    "start": "genversion src/version.js && node --loader ts-node/esm -r dotenv/config ./src/index.ts",
     "test": "mocha ./tests/**/*.test.ts",
     "build": "tsc -p . && genversion build/version.js",
     "build-docker": "npm run build && docker build --tag zeebe-db-monitor . --no-cache",
@@ -29,8 +29,7 @@
     "memoizee": "^0.4.15",
     "msgpackr": "^1.6.1",
     "prom-client": "^14.0.1",
-    "rocksdb": "^5.2.1",
-    "stream-to-async-iterator": "^1.0.0"
+    "rocksdb": "^5.2.1"
   },
   "devDependencies": {
     "@tsconfig/node18": "^1.0.0",

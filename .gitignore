@@ -3,3 +3,4 @@ node_modules/
 build
 ansible/ansible-tmp
 src/version.js
+docker_volume

@@ -3,7 +3,7 @@
  * that `collect()` won't crash the whole Express process if it throws.
  */
 
-const client_ = require("prom-client");
+import client_ from "prom-client";
 import { GaugeConfiguration } from "prom-client";
 
 class ExceptionSafeGauge<T extends string> extends client_.Gauge<T> {

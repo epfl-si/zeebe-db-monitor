@@ -1,12 +1,12 @@
 #!/bin/sh
 
-mkdir -p /zeebe-data-rw  # for dev, as we may have an empty dir. In prod, it should be a volume
+#mkdir -p /zeebe-data-rw  # for dev, as we may have an empty dir. In prod, it should be a volume
 
 # Use to create the symlink and start the app (tests)
-ln -sf /zeebe-data-ro/* /zeebe-data-rw
+#ln -sf /zeebe-data-ro/* /zeebe-data-rw
 
 # set the new RW folder as the one to use
-export ZEEBE_DATA_PATH=/zeebe-data-rw
+#export ZEEBE_DATA_PATH=/zeebe-data-rw
 exec node index.js
 
 # tried with or without success, keep a list of idea

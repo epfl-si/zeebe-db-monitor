@@ -4,10 +4,9 @@ ENV NODE_ENV=production
 
 WORKDIR /app
 COPY package*.json ./
-COPY start.sh ./
 
 RUN npm install
 
 COPY build/ ./
 
-CMD /app/start.sh
+CMD node index.js
