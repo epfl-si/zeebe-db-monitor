@@ -2,3 +2,5 @@
 .git
 docker_volume
 node_modules/
+Dockerfile
+
