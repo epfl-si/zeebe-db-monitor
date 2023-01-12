@@ -17,10 +17,7 @@ Monitor number of elements inside Zeebe DB
   - 127.0.0.1:9090 for the prometheus metric query
   - 127.0.0.1:8080/metrics for the prometheus exporter inside the app, aka raw metrics
 
-### How
-
-#### Error management
-To keep with inconsistency on disk access, the app never crash if the db is not avaible, but return empty values
+### How does this work ?
 
 #### Folders
 The tool use and need two folders:
@@ -32,6 +29,9 @@ The tool use and need two folders:
   - it needs all the zeebe data files, so this where the app will create the symlink between from the RO folder
   - by ex.: a mounted RW folder in kubernetes
   - use the env `ZEEBE_DATA_RW_BASE_PATH` to set it
+
+#### Error management
+To keep with inconsistency on disk access, the app never crash if the db is not available, but return empty values
 
 ## Prometheus
 

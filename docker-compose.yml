@@ -41,8 +41,8 @@ services:
     build:
       context: .
     volumes:
-      - ${ZEEBE_DATA_RO_DOCKER_HOST_PATH}:/zeebe-data-ro:ro
-      - ${ZEEBE_DATA_RW_BASE_PATH}:/zeebe-data-rw
+      - ${DOCKER_COMPOSE_ZEEBE_DATA_RO_PATH}:/zeebe-data-ro:ro
+      - ${DOCKER_COMPOSE_ZEEBE_DATA_RW_BASE_PATH}:/zeebe-data-rw
     environment:
       - ZEEBE_DATA_RO_PATH=/zeebe-data-ro
       - ZEEBE_DATA_RW_BASE_PATH=/zeebe-data-rw
