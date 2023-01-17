@@ -8,7 +8,7 @@
     "start": "genversion src/version.js && node --loader ts-node/esm -r dotenv/config ./src/index.ts",
     "test": "mocha ./tests/**/*.test.ts",
     "build": "tsc -p . && genversion build/version.js",
-    "build-docker": "npm run build && docker build --tag zeebe-db-monitor . --no-cache",
+    "build-docker": "docker build --tag zeebe-db-monitor .",
     "docker-tag": "docker tag zeebe-db-monitor os-docker-registry.epfl.ch/phd-assess-test/zeebe-db-monitor:latest",
     "oc-login": "oc whoami -t | docker login os-docker-registry.epfl.ch -u toto --password-stdin",
     "openshift-push": "docker push os-docker-registry.epfl.ch/phd-assess-test/zeebe-db-monitor:latest",
