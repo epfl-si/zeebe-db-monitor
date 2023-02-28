@@ -5,6 +5,8 @@ COPY package*.json ./
 
 FROM common AS build
 
+RUN apk add python3 git make g++ linux-headers
+
 RUN npm install
 COPY . ./
 RUN npm run build
