@@ -10,11 +10,6 @@ import memoizee from 'memoizee';
 
 const ZDB_READ_CACHE_TIMEOUT = process.env.ZDB_READ_CACHE_TIMEOUT ? parseInt(process.env.ZDB_READ_CACHE_TIMEOUT) : 60000 // default to 1 minutes
 
-type ZeebeStreamData = {
-  key: string
-  value: Buffer
-}
-
 /**
  * @param cfName The column family name as a fully typed-out string, e.g. "PROCESS_CACHE_BY_ID_AND_VERSION".
  *               See zbColumnFamilies.ts for the awaited values

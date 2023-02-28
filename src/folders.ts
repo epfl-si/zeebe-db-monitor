@@ -1,6 +1,6 @@
 import path from "path";
 import os from "os";
-import {access, symlink, unlink, lstat, readlink, mkdtemp, mkdir, readdir} from "fs/promises";
+import {access, symlink, mkdtemp, mkdir, readdir} from "fs/promises";
 import fs from 'fs';
 
 import dotenv from 'dotenv'
@@ -28,8 +28,6 @@ const printFolderContent = async (path: string, debugMessagePerFile: string) => 
   const filenames = await fs.promises.readdir(path)
   filenames.forEach((filename) => console.debug(`${debugMessagePerFile}: ${filename}`))
 }
-
-const zeebeFirstPartitionSubir = 'raft-partition/partitions/1'
 
 const isFolderWritable = async (path: string) => {
   try {
