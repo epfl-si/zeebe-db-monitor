@@ -4,7 +4,7 @@ import {columnFamiliesNames, ZbColumnFamilies} from "./zbColumnFamilies.js";
 import { Buffer } from 'node:buffer'
 import {unpack} from "msgpackr";
 import { Readable } from "stream";
-import {setSymlink, runtimeDir} from "./folders.js";
+import {makeRuntimeDir} from "./folders.js";
 import memoizee from 'memoizee';
 
 
@@ -39,7 +39,7 @@ async function initZDB() {
   try {
     console.debug(`${new Date().toISOString()} Instancing the levelup reader`)
     _zdbInstance = levelup(
-      RocksDB(runtimeDir),
+      RocksDB(await makeRuntimeDir()),
       {
         createIfMissing: false,
         readOnly: true,
@@ -48,14 +48,10 @@ async function initZDB() {
     )
   } catch (e: any) {
     console.error(`Creating the RocksDB reader crashed : ${e.message}`)
-    // TODO: check what kind of error we got
-    // try to rebuild the symlink for *all* cases at the moment
-    await setSymlink()
-
     // second try. If not, let the error raise to the main application
     console.debug("Instancing a second time the levelup reader")
     _zdbInstance = levelup(
-      RocksDB(runtimeDir),
+      RocksDB(await makeRuntimeDir()),
       {
         createIfMissing: false,
         readOnly: true,

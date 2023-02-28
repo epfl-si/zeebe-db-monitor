@@ -24,11 +24,6 @@ The tool use and need two folders:
 - The RO folder: the folder where the app will find the zeebe database. It has to be ready-only, as we want 0 modifications on production files, we are only monitoring the DB files.
   - by ex.: a mounted RO folder in kubernetes, the same folder as used by Zeebe to save the data but in RO mode
   - use the env `ZEEBE_DATA_RO_PATH` to set it
-- The RW folder
-  - the folder where the app will create necessary files to be able to read the zeebe database. The trick here is about the zeebeDb reader library : it needs to write files around the DB being read.
-  - it needs all the zeebe data files, so this where the app will create the symlink between from the RO folder
-  - by ex.: a mounted RW folder in kubernetes
-  - use the env `ZEEBE_DATA_RW_BASE_PATH` to set it
 
 #### Error management
 To keep with inconsistency on disk access, the app never crash if the db is not available, but return empty values
