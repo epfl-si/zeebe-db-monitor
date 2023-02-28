@@ -29,7 +29,7 @@
     "memoizee": "^0.4.15",
     "msgpackr": "^1.6.1",
     "prom-client": "^14.0.1",
-    "rocksdb": "^5.2.1"
+    "rocksdb": "https://github.com/epfl-si/rocksdb-node"
   },
   "devDependencies": {
     "@tsconfig/node18": "^1.0.0",
