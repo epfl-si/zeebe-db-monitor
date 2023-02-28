@@ -35,6 +35,15 @@ To keep with inconsistency on disk access, the app never crash if the db is not 
   - `rate(db_read_duration_seconds_sum[5m]) / rate(db_read_duration_seconds_count[5m])`
   - `histogram_quantile(0.9, sum(rate(db_read_duration_seconds_bucket[5m])) by (le))`
 
+## Test
+
+Under Docker:
+
+1. [Obtain a production dump](https://confluence.epfl.ch:8443/pages/viewpage.action?pageId=176426019)
+2. Run something like <pre>docker build -t zeebe-db-monitor .; \
+docker run --rm --name zeebe-db-monitor -i -p 8080:8080 -e ZEEBE_DATA_RO_PATH=/zeebe -v $HOME/Dev/PhDassess/snapshots/raft-partition/partitions/1/snapshots/237354356-1490-242489550-242489551:/zeebe:ro -- zeebe-db-monitor</pre>
+3. Browse http://localhost:8080/
+
 ## Deploy
 ### Openshift test namespace
 `npm run build-and-deploy-on-openshift-test`
