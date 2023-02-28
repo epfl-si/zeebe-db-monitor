@@ -20,8 +20,7 @@ RUN npm run build
 FROM common
 
 ENV NODE_ENV=production
-RUN npm install
-
+COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/build/ .
 
 CMD node index.js
