@@ -4,7 +4,7 @@ import {columnFamiliesNames, ZbColumnFamilies} from "./zbColumnFamilies.js";
 import { Buffer } from 'node:buffer'
 import {unpack} from "msgpackr";
 import { Readable } from "stream";
-import {makeRuntimeDir} from "./folders.js";
+import {RuntimeDir} from "./folders.js";
 import memoizee from 'memoizee';
 
 
@@ -26,33 +26,37 @@ const int64ToBytes = (i : number) : Uint8Array => {
   return buf
 }
 
-let _zdbInstance: LevelUp<RocksDB>
+async function ZDB() {
+  let lastError : Error | undefined = undefined;
+  let runtimeDir : Awaited<ReturnType<typeof RuntimeDir>> | undefined = undefined;
+  let zdbInstance: LevelUp<RocksDB> | undefined = undefined;
 
-async function initZDB() {
-  if (_zdbInstance && _zdbInstance.isOpen()) return
+  for (let i of [1,2]) {
+    try {
+      runtimeDir = await RuntimeDir();
+      zdbInstance = levelup(
+        RocksDB(runtimeDir.dir),
+        {
+          createIfMissing: false,
+          readOnly: true
+        } );
+      break;
+    } catch (e : any) {
+      if (runtimeDir) await runtimeDir.delete();
+      lastError = e;
+    }
+  }
 
-  try {
-    console.debug(`${new Date().toISOString()} Instancing the levelup reader`)
-    _zdbInstance = levelup(
-      RocksDB(await makeRuntimeDir()),
-      {
-        createIfMissing: false,
-        readOnly: true,
-        infoLogLevel: 'error'
-      }
-    )
-  } catch (e: any) {
-    console.error(`Creating the RocksDB reader crashed : ${e.message}`)
-    // second try. If not, let the error raise to the main application
-    console.debug("Instancing a second time the levelup reader")
-    _zdbInstance = levelup(
-      RocksDB(await makeRuntimeDir()),
-      {
-        createIfMissing: false,
-        readOnly: true,
-        infoLogLevel: 'error'
-      }
-    )
+  if (! zdbInstance ) {
+    throw lastError;
+  }
+
+  return {
+    db: zdbInstance,
+    async close() {
+      if (zdbInstance) await zdbInstance.close();
+      if (runtimeDir) await runtimeDir.delete();
+    }
   }
 }
 
@@ -60,29 +64,33 @@ export async function walkColumnFamily(
   columnFamilyName: keyof typeof ZbColumnFamilies,
   walkType: 'key'|'keyValue'|'value' = 'key') {
 
-  await initZDB()
+  const { db, close } = await ZDB()
 
-  if (walkType === 'keyValue') {
-    return Readable.from(
-        _zdbInstance.createReadStream({
+  try {
+    if (walkType === 'keyValue') {
+      return await Readable.from(
+        db.createReadStream({
           gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
           lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
         })
-    )
-  } else if (walkType === 'value') {
-    return Readable.from(
-        _zdbInstance.createValueStream({
+      )
+    } else if (walkType === 'value') {
+      return await Readable.from(
+        db.createValueStream({
           gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
           lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
         })
-    )
-  } else {
-    return Readable.from(
-        _zdbInstance.createKeyStream({
+      )
+    } else {
+      return await Readable.from(
+        db.createKeyStream({
           gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
           lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
         })
-    )
+      )
+    }
+  } finally {
+    await close()
   }
 }
 
@@ -92,7 +100,7 @@ export async function walkColumnFamily(
  */
 export async function ColumnFamiliesCount() {
   try {
-    await initZDB()
+    await ZDB()
 
     const columFamiliesCounted = new Map<string, number>()
 
@@ -154,7 +162,3 @@ export const memoizedIncidentsMessageCount = memoizee(
     maxAge: ZDB_READ_CACHE_TIMEOUT,
   }
 )
-
-export async function closeDB() {
-  _zdbInstance && _zdbInstance.isOpen() && await _zdbInstance.close()
-}

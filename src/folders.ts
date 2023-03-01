@@ -2,6 +2,7 @@ import path from "path";
 import os from "os";
 import {access, symlink, mkdtemp, mkdir, readdir} from "fs/promises";
 import fs from 'fs';
+import rimraf from 'rimraf';
 
 import dotenv from 'dotenv'
 dotenv.config()
@@ -40,10 +41,8 @@ const isFolderWritable = async (path: string) => {
 
 /**
  * Prepare and return a symlinked ZeebeDB.
- *
- * @return The path in which the symlinked `CURRENT` file exists.
  */
-export async function makeRuntimeDir(sourceZeebe ?: string) {
+export async function RuntimeDir(sourceZeebe ?: string) {
   if (! sourceZeebe) sourceZeebe = zeebeDataROPathEnv;
   // check if ZeebeRO folder is fine
   console.debug(`Checking and fixing folders state...`)
@@ -81,5 +80,10 @@ export async function makeRuntimeDir(sourceZeebe ?: string) {
   console.debug(`[OK] folder "CURRENT" exists`)
 
   console.debug(`[Folders check] All good !`)
-  return runtimeDir;
+  return {
+    dir: runtimeDir,
+    async delete() {
+      rimraf(runtimeDir)
+    }
+  };
 }
