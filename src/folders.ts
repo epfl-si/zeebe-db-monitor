@@ -64,7 +64,7 @@ export async function makeRuntimeDir(sourceZeebe ?: string) {
   await mkdir(runtimeDir);
 
   for (const toSymlink of await readdir(sourceZeebe)) {
-    if ( ! ((toSymlink === ".") || (toSymlink === "..")) ) {
+    if ( ! ((toSymlink === ".") || (toSymlink === "..") || (toSymlink === "LOCK"))) {
       await symlink(path.join(sourceZeebe, toSymlink), path.join(runtimeDir, toSymlink));
     }
   }
