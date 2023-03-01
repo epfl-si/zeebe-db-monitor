@@ -100,8 +100,6 @@ export async function walkColumnFamily(
  */
 export async function ColumnFamiliesCount() {
   try {
-    await ZDB()
-
     const columFamiliesCounted = new Map<string, number>()
 
     for (let columnFamilyName of columnFamiliesNames) {
