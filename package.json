@@ -29,6 +29,7 @@
     "memoizee": "^0.4.15",
     "msgpackr": "^1.6.1",
     "prom-client": "^14.0.1",
+    "rimraf": "^4.1.2",
     "rocksdb": "https://github.com/epfl-si/rocksdb-node#feature/lz4"
   },
   "devDependencies": {
