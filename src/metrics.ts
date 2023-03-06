@@ -1,5 +1,5 @@
 import {client} from "./promClient.js";
-import {memoizedColumnFamiliesCount, memoizedIncidentsMessageCount} from "./zeebeDB.js";
+import {tallyHistogram} from "./tallyHistogram.js";
 
 export const defaultMetricsRegistry = new client.Registry()
 export const zeebeMetricsRegistry = new client.Registry()
@@ -47,7 +47,7 @@ zeebeMetricsRegistry.registerMetric(
       const incidentCountPerMessage = await memoizedIncidentsMessageCount()
 
       //set the measure
-      incidentCountPerMessage?.forEach((count: number, message: string) => {
+      tallyHistogram(incidentCountPerMessage).forEach((count: number, message: string) => {
         this.set(
           {db_name: 'runtime', error_message: message}, count
         );
