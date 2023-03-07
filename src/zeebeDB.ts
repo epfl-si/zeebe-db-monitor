@@ -5,7 +5,6 @@ import { Buffer } from 'node:buffer'
 import {unpack} from "msgpackr";
 import { Readable } from "stream";
 import {RuntimeDir} from "./folders.js";
-import memoizee from 'memoizee';
 
 
 const ZDB_READ_CACHE_TIMEOUT = process.env.ZDB_READ_CACHE_TIMEOUT ? parseInt(process.env.ZDB_READ_CACHE_TIMEOUT) : 60000 // default to 1 minutes
@@ -120,12 +119,6 @@ export async function ColumnFamiliesCount() {
   }
 }
 
-export const memoizedColumnFamiliesCount = memoizee(
-  ColumnFamiliesCount,
-  {
-    maxAge: ZDB_READ_CACHE_TIMEOUT,
-  }
-)
 
 async function incidentsMessageCount() {
   try {
@@ -154,9 +147,3 @@ async function incidentsMessageCount() {
   }
 }
 
-export const memoizedIncidentsMessageCount = memoizee(
-  incidentsMessageCount,
-  {
-    maxAge: ZDB_READ_CACHE_TIMEOUT,
-  }
-)

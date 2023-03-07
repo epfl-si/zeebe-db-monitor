@@ -1,3 +1,4 @@
+import {ColumnFamiliesCount, incidentsMessageCount} from "./zeebeDB.js";
 import {client} from "./promClient.js";
 import {tallyHistogram} from "./tallyHistogram.js";
 
@@ -25,7 +26,7 @@ zeebeMetricsRegistry.registerMetric(
       this.reset()  // remove all values from last iteration
 
       // Set the mesure on all the column family
-      const columnFamiliesCount = await memoizedColumnFamiliesCount()
+      const columnFamiliesCount = await ColumnFamiliesCount()
 
       columnFamiliesCount?.forEach((columnFamilyCount: number, columnFamiliesName: string) =>
         this.set(
@@ -44,7 +45,7 @@ zeebeMetricsRegistry.registerMetric(
     async collect() {
       this.reset()  // remove all values from last iteration
 
-      const incidentCountPerMessage = await memoizedIncidentsMessageCount()
+      const incidentCountPerMessage = await incidentsMessageCount()
 
       //set the measure
       tallyHistogram(incidentCountPerMessage).forEach((count: number, message: string) => {
