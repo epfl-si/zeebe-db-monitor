@@ -1,28 +1,34 @@
 import 'mocha'
 import 'path'
 import {walkColumnFamily} from '../src/zeebeDB.js';
+import { expect } from 'chai';
+import {unpack} from "msgpackr";
 
 
-/* Init chai shortcuts */
-const chai = require('chai')
-chai.use(require('chai-fs'))
-const expect = chai.expect
+describe('snapshots data reading tests', () => {
+  describe('Zeebe DB reading', () => {
+    it('should let me count the number of a column', async () => {
+      console.debug('counting JOBS')
 
+      let count = 0;
+      for await (const row of await walkColumnFamily('PROCESS_VERSION', 'key')) {
+        !count ? count = 1 : count++;
+      }
 
-describe('snapshots data integrity tests', () => {
-  describe('Zeebe DB API', () => {
-    it('should let me count the number of PROCESS_VERSION', async () => {
-      console.debug('counting PROCESS_VERSION')
-      const columnFamiliesCount = await walkColumnFamily('PROCESS_VERSION')
-      console.debug(`Number of PROCESS_VERSION found: ${columnFamiliesCount}`)
-      expect(columnFamiliesCount).to.be.equal(1)
+      console.debug(`Number of JOBS found: ${count}`)
+      expect(count).to.be.greaterThan(0)
     })
 
-    it('should let me count the number of JOBS', async () => {
-      console.debug('counting JOBS')
-      const columnFamiliesCount = await walkColumnFamily('PROCESS_VERSION')
-      console.debug(`Number of JOBS found: ${columnFamiliesCount}`)
-      expect(columnFamiliesCount).to.be.greaterThan(1)
+    it('should let me read some values', async () => {
+      const incidentMessages: string[] = []
+
+      for await (const row of await walkColumnFamily('INCIDENTS', 'keyValue')) {
+        const unpackedValue = unpack(row.value)
+        incidentMessages.push(unpackedValue?.incidentRecord?.errorMessage)
+      }
+
+      expect(incidentMessages.length).to.be.greaterThan(0)
+      expect(incidentMessages[0]).to.be.a('string')
     })
   })
 })
