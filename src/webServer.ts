@@ -29,9 +29,9 @@ expressApp.get('/metrics', async (req: Request, res: Response) => {
     res.setHeader('Content-Type', register.contentType);
     // get metrics one after one, that's better for zb
     let metrics: string[] = []
-    metrics.push(await defaultMetricsRegistry.metrics())
     metrics.push(await zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_entries'))
     metrics.push(await zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_incident_entries'))
+    metrics.push(await defaultMetricsRegistry.metrics())
 
     res.send(`${metrics.join('\n\n')}\n`);
 
