@@ -1,13 +1,18 @@
+import debug_ from "debug";
+
 import RocksDB from "rocksdb";
 import levelup, {LevelUp} from "levelup";
 import {columnFamiliesNames, ZbColumnFamilies} from "./zbColumnFamilies.js";
 import { Buffer } from 'node:buffer'
 import {unpack} from "msgpackr";
-import { Readable } from "stream";
+import {Readable} from "stream";
 import {RuntimeDir} from "./folders.js";
 
 
-const ZDB_READ_CACHE_TIMEOUT = process.env.ZDB_READ_CACHE_TIMEOUT ? parseInt(process.env.ZDB_READ_CACHE_TIMEOUT) : 60000 // default to 1 minutes
+const LOG_EVERY_N_READS = 10;
+
+const debug = debug_("zeebeDB") as ReturnType<typeof debug_> & { readCount : number };
+debug.readCount = LOG_EVERY_N_READS;
 
 /**
  * @param cfName The column family name as a fully typed-out string, e.g. "PROCESS_CACHE_BY_ID_AND_VERSION".
@@ -64,33 +69,38 @@ export async function walkColumnFamily(
   walkType: 'key'|'keyValue'|'value' = 'key') {
 
   const { db, close } = await ZDB()
+  let stream: ReturnType<typeof db.createReadStream>;
 
-  try {
-    if (walkType === 'keyValue') {
-      return await Readable.from(
-        db.createReadStream({
-          gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
-          lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
-        })
-      )
-    } else if (walkType === 'value') {
-      return await Readable.from(
-        db.createValueStream({
-          gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
-          lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
-        })
-      )
-    } else {
-      return await Readable.from(
-        db.createKeyStream({
-          gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
-          lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
-        })
-      )
-    }
-  } finally {
-    await close()
+  if (walkType === 'keyValue') {
+    stream = db.createReadStream({
+      gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+      lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+    })
+  } else if (walkType === 'value') {
+    stream = db.createValueStream({
+      gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+      lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+    })
+  } else {
+    stream = db.createKeyStream({
+      gte: columnFamilyNametoInt64Bytes(columnFamilyName, 0),
+      lt: columnFamilyNametoInt64Bytes(columnFamilyName, 1),
+    })
   }
+  if (debug.enabled) {
+    stream.on("data", () => {
+      if (! debug.readCount--) {
+        debug(`Already read ${LOG_EVERY_N_READS} records`);
+        debug.readCount = LOG_EVERY_N_READS;
+      }
+    });
+  }
+  stream.on("close", () => {
+    debug(`closing DB (and deleting symlinks)`)
+    close()
+  })
+
+  return Readable.from(stream);
 }
 
 /*
@@ -120,7 +130,7 @@ export async function ColumnFamiliesCount() {
 }
 
 
-async function incidentsMessageCount() {
+export async function incidentsMessageCount() {
   try {
     const incidentMessages: string[] = []
 
@@ -146,4 +156,3 @@ async function incidentsMessageCount() {
     return new Map<string, number>()
   }
 }
-
