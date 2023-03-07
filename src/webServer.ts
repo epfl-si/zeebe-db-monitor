@@ -5,7 +5,6 @@ import {
 } from "./metrics.js";
 import rateLimit from 'express-rate-limit'
 import {register} from "prom-client";
-import {closeDB} from "./zeebeDB.js";
 
 import express from "express";
 export const expressApp = express();
@@ -30,9 +29,9 @@ expressApp.get('/metrics', async (req: Request, res: Response) => {
     res.setHeader('Content-Type', register.contentType);
     // get metrics one after one, that's better for zb
     let metrics: string[] = []
-    metrics.push(await defaultMetricsRegistry.metrics())
     metrics.push(await zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_entries'))
     metrics.push(await zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_incident_entries'))
+    metrics.push(await defaultMetricsRegistry.metrics())
 
     res.send(`${metrics.join('\n\n')}\n`);
 
@@ -42,7 +41,5 @@ expressApp.get('/metrics', async (req: Request, res: Response) => {
     console.error(`Error while getting metrics : ${e}`)   // send it back to console, so we can debug it
     res.status(500)
     res.json({ message: `Error: ${e}`})
-  } finally {
-    await closeDB()
   }
 });

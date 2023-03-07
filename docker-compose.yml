@@ -42,10 +42,8 @@ services:
       context: .
     volumes:
       - ${DOCKER_COMPOSE_ZEEBE_DATA_RO_PATH}:/zeebe-data-ro:ro
-      - ${DOCKER_COMPOSE_ZEEBE_DATA_RW_BASE_PATH}:/zeebe-data-rw
     environment:
       - ZEEBE_DATA_RO_PATH=/zeebe-data-ro
-      - ZEEBE_DATA_RW_BASE_PATH=/zeebe-data-rw
     ports:
       - 8080:8080
     expose:
