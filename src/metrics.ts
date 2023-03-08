@@ -15,7 +15,10 @@ client.collectDefaultMetrics({
 export const zeebe_db_read_duration_seconds = new client.Histogram({
   name: 'zeebe_db_read_duration_seconds',
   help: 'Duration to count the entries for all the columnFamilies in ZeebeDB in seconds',
+  labelNames: ["metric_name"]
 })
+
+defaultMetricsRegistry.registerMetric(zeebe_db_read_duration_seconds)
 
 zeebeMetricsRegistry.registerMetric(
   new client.Gauge({
