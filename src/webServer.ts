@@ -29,9 +29,16 @@ expressApp.get('/metrics', async (req: Request, res: Response) => {
     res.setHeader('Content-Type', register.contentType);
     // get metrics one after one, that's better for zb
     let metrics: string[] = []
-    metrics.push(await zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_entries'))
-    metrics.push(await zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_incident_entries'))
-    metrics.push(await defaultMetricsRegistry.metrics())
+    const pushMetric = (metric : string) => metrics.push(metric)
+
+    await Promise.race([
+      sleep(2000),
+      Promise.all([
+        zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_entries').then(pushMetric),
+        zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_incident_entries').then(pushMetric),
+        defaultMetricsRegistry.metrics().then(pushMetric)
+      ])
+    ]);
 
     res.send(`${metrics.join('\n\n')}\n`);
 
@@ -43,3 +50,9 @@ expressApp.get('/metrics', async (req: Request, res: Response) => {
     res.json({ message: `Error: ${e}`})
   }
 });
+
+async function sleep (millis : number) : Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, millis);
+  });
+}
