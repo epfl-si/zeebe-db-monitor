@@ -66,9 +66,13 @@ async function ZDB() {
 
 export async function walkColumnFamily(
   columnFamilyName: keyof typeof ZbColumnFamilies,
-  walkType: 'key'|'keyValue'|'value' = 'key') {
+  walkType: 'key'|'keyValue'|'value' = 'key',
+  db?: LevelUp<RocksDB>) {
 
-  const { db, close } = await ZDB()
+  let close : () => void;
+  if (! db) {
+    ({close, db} = await ZDB());
+  }
   let stream: ReturnType<typeof db.createReadStream>;
 
   if (walkType === 'keyValue') {
@@ -96,8 +100,12 @@ export async function walkColumnFamily(
     });
   }
   stream.on("close", () => {
-    debug(`closing DB (and deleting symlinks)`)
-    close()
+    if (close) {
+      debug(`walkColumnFamily: closing DB (and deleting symlinks)`)
+      close()
+    } else {
+      debug(`walkColumnFamily: done (not closing handle)`)
+    }
   })
 
   return Readable.from(stream);
@@ -108,24 +116,30 @@ export async function walkColumnFamily(
  * Get only the ones with at least a value
  */
 export async function ColumnFamiliesCount() {
+  debug("ColumnFamiliesCount(): start");
+  const zdb = await ZDB();
   try {
     const columFamiliesCounted = new Map<string, number>()
 
     for (let columnFamilyName of columnFamiliesNames) {
       let count: number | undefined;
 
-      for await (const row of await walkColumnFamily(columnFamilyName, 'key')) {
+      for await (const row of await walkColumnFamily(columnFamilyName, 'key', zdb.db)) {
         !count ? count = 1 : count++;
       }
 
       count && columFamiliesCounted.set(columnFamilyName, count)
     }
 
+    debug("ColumnFamiliesCount(): success");
     return columFamiliesCounted
   } catch (e) {
+    debug("ColumnFamiliesCount(): error");
     console.error(e)
     // get all or nothing if an error raised
     return new Map<string, number>()
+  } finally {
+    zdb.close()
   }
 }
 
