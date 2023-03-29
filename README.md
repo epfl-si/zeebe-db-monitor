@@ -11,11 +11,12 @@ Monitor number of elements inside Zeebe DB
 1. Copy the `.env.sample` file to `.env` and set the correct path to your Zeebe data
 2. Choose one of the following:
 - build and start the apps stack within Docker: `docker-compose up --build zeebe-db-monitor`
-- start outside of Docker (easier to debug):
-  ```
-  npx npm@6 install 
-  node --loader ts-node/esm src/index.ts
-  ```
+- start outside of Docker (easier to debug), on Debian, it will be:
+  - ```sudo apt install liblz4-dev```
+  - ```
+    npx npm@6 install
+    node --loader ts-node/esm src/index.ts
+    ```
 3. Go to
 - 127.0.0.1:4000 for the grafana dashboards (Docker only)
 - 127.0.0.1:9090 for the prometheus metric query (Docker only)
