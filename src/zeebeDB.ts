@@ -30,7 +30,7 @@ const int64ToBytes = (i : number) : Uint8Array => {
   return buf
 }
 
-async function ZDB() {
+export async function ZDB() {
   let lastError : Error | undefined = undefined;
   let runtimeDir : Awaited<ReturnType<typeof RuntimeDir>> | undefined = undefined;
   let zdbInstance: LevelUp<RocksDB> | undefined = undefined;
