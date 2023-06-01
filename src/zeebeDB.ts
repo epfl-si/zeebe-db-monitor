@@ -1,12 +1,14 @@
 import debug_ from "debug";
 
-import RocksDB from "rocksdb";
-import levelup, {LevelUp} from "levelup";
-import {columnFamiliesNames, ZbColumnFamilies} from "./zbColumnFamilies.js";
 import { Buffer } from 'node:buffer'
-import {unpack} from "msgpackr";
 import {Readable} from "stream";
+
+import levelup, {LevelUp} from "levelup";
+import RocksDB from "rocksdb";
+
 import {RuntimeDir} from "./folders.js";
+import {columnFamiliesNames, ZbColumnFamilies} from "./zbColumnFamilies.js";
+import {unpackValue} from "./zeebeValue.js";
 
 
 const LOG_EVERY_N_READS = 10;
@@ -149,7 +151,7 @@ export async function incidentsMessageCount() {
     const incidentMessages: string[] = []
 
     for await (const row of await walkColumnFamily('INCIDENTS', 'keyValue')) {
-      const unpackedValue = unpack(row.value)
+      const unpackedValue = unpackValue(row.value)
       incidentMessages.push(unpackedValue?.incidentRecord?.errorMessage)
     }
 
