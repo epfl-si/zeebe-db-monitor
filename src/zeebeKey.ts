@@ -15,8 +15,17 @@ type DecodedKey = {
   elements?: string[]
 }
 
-function keyParser (key: string | ArrayBuffer) {
-  const keyBytes : ArrayBuffer = (typeof(key) === "string") ? (new TextEncoder()).encode(key).buffer : key;
+function keyParser (key: string | ArrayBuffer | Buffer) {
+  let keyBytes: ArrayBufferLike;
+
+  if (typeof(key) === "string") {
+    keyBytes = (new TextEncoder()).encode(key).buffer
+  } else if (key instanceof Buffer) {
+    keyBytes = key.buffer
+  } else {
+    keyBytes = key
+  }
+
   const view = new DataView(keyBytes);
   let offset = 0;
 
