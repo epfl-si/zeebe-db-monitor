@@ -12,7 +12,8 @@
     "docker-tag": "docker tag zeebe-db-monitor os-docker-registry.epfl.ch/phd-assess-test/zeebe-db-monitor:latest",
     "oc-login": "oc whoami -t | docker login os-docker-registry.epfl.ch -u toto --password-stdin",
     "openshift-push": "docker push os-docker-registry.epfl.ch/phd-assess-test/zeebe-db-monitor:latest",
-    "build-and-deploy-on-openshift-test": "npm-run-all oc-login build-docker docker-tag openshift-push"
+    "build-and-deploy-on-openshift-test": "npm-run-all oc-login build-docker docker-tag openshift-push",
+    "to-json": "node --loader ts-node/esm -r dotenv/config src/toJsonCli.ts"
   },
   "keywords": [],
   "author": "",
@@ -45,6 +46,8 @@
     "@types/rocksdb": "^3.0.1",
     "chai": "^4.3.4",
     "chai-fs": "^2.0.0",
+    "clipboardy": "^3.0.0",
+    "node-jq": "^2.3.5",
     "mocha": "^9.0.3",
     "npm-run-all": "^4.1.5",
     "ts-node": "^10.9.1",

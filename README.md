@@ -55,3 +55,10 @@ Under Docker:
 ## Deploy
 ### Openshift test namespace
 `npm run build-and-deploy-on-openshift-test`
+
+
+## Tools
+
+A tool to uncompress the db into a json file is provided too.
+`npm run to-json clipboard` or
+`npm run to-json file`
