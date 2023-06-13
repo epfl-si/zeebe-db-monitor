@@ -6,15 +6,6 @@ import {TextEncoder, TextDecoder} from 'util';
 import {columnFamiliesNames} from "./zbColumnFamilies.js";
 
 
-/**
- * From a key as ArrayBuffer, we should be able to return this data
- */
-type DecodedKey = {
-  family: string
-  processInstanceKey?: number
-  elements?: string[]
-}
-
 function keyParser (key: string | ArrayBuffer | Buffer) {
   let keyBytes: ArrayBufferLike;
 
@@ -81,6 +72,23 @@ function keyParser (key: string | ArrayBuffer | Buffer) {
   }
 }
 
+/**
+ * From a key as ArrayBuffer, we should be able to return some data
+ */
+type DecodedKey = {
+  family: string
+  processInstanceKey?: number
+}
+
+type DecodedKeyNumberOfTakenSequenceFlows = DecodedKey & {
+  elements?: string[]
+}
+
+type DecodedKeyVariables = DecodedKey & {
+  fieldName?: string
+}
+
+
 export function decodeKey (key: string | ArrayBuffer) {
   const parser = keyParser(key);
 
@@ -92,18 +100,30 @@ export function decodeKey (key: string | ArrayBuffer) {
 
   if (columnFamilyName === "NUMBER_OF_TAKEN_SEQUENCE_FLOWS") {
     keyStruct.processInstanceKey = parser.consumeZeebeKey();
-    keyStruct.elements = [];
+    (keyStruct as DecodedKeyNumberOfTakenSequenceFlows).elements = [];
     while (undefined !== parser.peekString()) {
-      keyStruct.elements.push(parser.consumeString()!);
+      (keyStruct as DecodedKeyNumberOfTakenSequenceFlows).elements!.push(parser.consumeString()!);
     }
     if (parser.bytesRemaining() !== 0) {
       throw new Error(`Error parsing NUMBER_OF_TAKEN_SEQUENCE_FLOWS key, ${parser.bytesRemaining()} bytes remaining`);
     }
+
+    return keyStruct as DecodedKeyNumberOfTakenSequenceFlows
+  } else if (columnFamilyName === "VARIABLES") {
+    keyStruct.processInstanceKey = parser.consumeZeebeKey();
+    (keyStruct as DecodedKeyVariables).fieldName = "";
+    while (undefined !== parser.peekString()) {
+      const fieldName = parser.consumeString();
+      if (fieldName && fieldName !== undefined) (keyStruct as DecodedKeyVariables).fieldName = fieldName;
+    }
+    if (parser.bytesRemaining() !== 0) {
+      throw new Error(`Error parsing VARIABLES key, ${parser.bytesRemaining()} bytes remaining`);
+    }
+
+    return keyStruct as DecodedKeyVariables
   } else if (columnFamilyName === "JOBS") {
     throw new Error(`The column family ${columnFamilyName} has no decoder`)
   } else {
     throw new Error(`The column family ${columnFamilyName} has no decoder`)
   }
-
-  return keyStruct;
 }

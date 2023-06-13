@@ -12,4 +12,16 @@ describe('Testing the capacity to process the keys of the Zeebe DB', () => {
         elements: [ "Gateway_1iu457q", "Flow_1tpm1z9" ]
       });
   });
+
+  it('should decode a VARIABLES key', () => {
+    const variableKey = new Uint8Array(
+[0,0,0,0,0,0,0,10,0,8,0,0,0,5,40,246,0,0,0,3,80,68,70]).buffer
+
+    assert.deepEqual(decodeKey(variableKey),
+      {
+        family: "VARIABLES",
+        processInstanceKey: 2251799814023414,
+        fieldName: 'PDF',
+      });
+  });
 });

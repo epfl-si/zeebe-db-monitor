@@ -86,7 +86,7 @@ export const getZeebeContent = async (columnFamilyWanted: (keyof typeof ZbColumn
     {
       name: 'VARIABLES',
       keyComponentsDescription: '${ProcessInstanceKey} ${label}',
-      keyDecoder: (row) => row.key,
+      keyDecoder: (row) => decodeKey(row.key),
       valueDecoder: (row) => {
           // need created_at, updated_at, phdStudentSciper
           let value = unpackValue(row.value)
