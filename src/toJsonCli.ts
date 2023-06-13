@@ -8,13 +8,16 @@ import { promises as fs } from 'fs';
 // certainly arriving from the cli
 const parameter = process.argv[2];
 
-if (!['clipboard', 'file'].includes(parameter)) {
+if (!['clipboard', 'file', 'console'].includes(parameter)) {
   console.log("Add 'clipboard' or 'file' to the command")
   process.exit()
 }
 
 const getData = async () => {
-  let dataToJson = await getZeebeContent()
+  let dataToJson = await getZeebeContent([
+    'NUMBER_OF_TAKEN_SEQUENCE_FLOWS',
+    'INCIDENTS',
+  ])
   // dataToJson = await jq.run('.', dataToJson, { input: 'json' })
   return dataToJson
 }
@@ -37,5 +40,7 @@ const getData = async () => {
     );
 
     console.log(`Saved into ${defaultOutputFilePath}`)
+  } else if (parameter === 'console') {
+    console.log(await getData())
   }
 })();
