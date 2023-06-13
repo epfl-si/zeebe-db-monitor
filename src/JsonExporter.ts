@@ -54,33 +54,33 @@ export const getColumnFamilyContent = async (
  * This function serves to read the content of the DB
  * It mainly set the good encoder for the good column family
  */
-export const getZeebeContent = async () => {
+export const getZeebeContent = async (columnFamilyWanted: (keyof typeof ZbColumnFamilies)[]) => {
   let close;
   let db: LevelUp<RocksDB>;
   ( { close, db } = await ZDB() );
 
-  const columnFamilyKeysNeeded: columFamilyNameProcessor[] = [
-    // {
-    //   name:'NUMBER_OF_TAKEN_SEQUENCE_FLOWS',
-    //   keyComponentsDescription:'${ProcessInstanceKey} ${elements1} ${elements2}',
-    //   keyExample: '2262799816461518 Gateway_4xf2f Flow_2ifm4z9',
-    //   keyDecoder: (row) => {
-    //     const keyStruct = decodeKey(row.key)
-    //
-    //     // keep only the processInstanceKey and the elements from the key
-    //     const { family, ...keyStructWithoutFamily } = keyStruct
-    //     return keyStructWithoutFamily
-    //   },
-    //   valueDecoder: (row) => row,
-    // },
-    // {
-    //   name: 'INCIDENTS',
-    //   keyComponentsDescription: '${ProcessInstanceKey}',
-    //   keyDecoder: (row) => {
-    //     return unpackValue(row.value)?.incidentRecord
-    //   },
-    //   valueDecoder: (row) => unpackValue(row.value),
-    // },
+  const columnFamilyKeysProcessors: columFamilyNameProcessor[] = [
+    {
+      name:'NUMBER_OF_TAKEN_SEQUENCE_FLOWS',
+      keyComponentsDescription:'${ProcessInstanceKey} ${elements1} ${elements2}',
+      keyExample: '2262799816461518 Gateway_4xf2f Flow_2ifm4z9',
+      keyDecoder: (row) => {
+        const keyStruct = decodeKey(row.key)
+
+        // keep only the processInstanceKey and the elements from the key
+        const { family, ...keyStructWithoutFamily } = keyStruct
+        return keyStructWithoutFamily
+      },
+      valueDecoder: (row) => row,
+    },
+    {
+      name: 'INCIDENTS',
+      keyComponentsDescription: '${ProcessInstanceKey}',
+      keyDecoder: (row) => {
+        return unpackValue(row.value)?.incidentRecord
+      },
+      valueDecoder: (row) => unpackValue(row.value),
+    },
     {
       name: 'VARIABLES',
       keyComponentsDescription: '${ProcessInstanceKey} ${label}',
@@ -101,8 +101,10 @@ export const getZeebeContent = async () => {
 
   const data: any = {}
 
-  for (const columnFamilyProcessor of columnFamilyKeysNeeded) {
+  for (const columnFamilyProcessor of columnFamilyKeysProcessors) {
     const columnFamilyName = columnFamilyProcessor.name
+
+    if (!columnFamilyWanted.includes(columnFamilyName)) continue
 
     data[columnFamilyName] = []
 
