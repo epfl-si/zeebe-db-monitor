@@ -2,10 +2,10 @@ import {assert} from "chai";
 import {decodeKey} from "../src/zeebeKey.js";
 
 describe('Testing the capacity to process the keys of the Zeebe DB', () => {
-  const numberOfTakenSequenceFlowsKey1 = "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\b\u0000\b\u0000\u0000\u0000\u0005((\u0000\u0000\u0000\u000fGateway_1iu457q\u0000\u0000\u0000\fFlow_1tpm1z9"
+  it('should decode a NUMBER_OF_TAKEN_SEQUENCE_FLOWS key', () => {
+    const numberOfTakenSequenceFlowsKey = "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\b\u0000\b\u0000\u0000\u0000\u0005((\u0000\u0000\u0000\u000fGateway_1iu457q\u0000\u0000\u0000\fFlow_1tpm1z9"
 
-  it('should decode NUMBER_OF_TAKEN_SEQUENCE_FLOWS keys', () => {
-    assert.deepEqual(decodeKey(numberOfTakenSequenceFlowsKey1),
+    assert.deepEqual(decodeKey(numberOfTakenSequenceFlowsKey),
       {
         family: "NUMBER_OF_TAKEN_SEQUENCE_FLOWS",
         processInstanceKey: 2251799814023208,
