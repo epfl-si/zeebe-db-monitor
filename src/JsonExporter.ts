@@ -1,6 +1,8 @@
 /**
  * Provide functionalities to transform a zeebe db to a json file
- * Designed to be used into a command line fashion
+ * Warning:
+ *   the key values outputted does not reflect the real Zeebe key-value.
+ *   it is completely arbitrary, as was the need.
  */
 
 import _ from 'lodash'

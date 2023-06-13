@@ -1,3 +1,10 @@
+/**
+ * Some utility to read a ZeebeDB to a json output.
+ * Warning:
+ *   the key values outputted does not reflect the real Zeebe key-value.
+ *   it is completely arbitrary, as was the need.
+ */
+
 import clipboard from 'clipboardy'
 import jq from 'node-jq';
 import {getZeebeContent} from "./JsonExporter.js";
