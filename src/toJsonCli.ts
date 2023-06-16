@@ -24,8 +24,12 @@ const getData = async () => {
   let dataToJson = await getZeebeContent([
     'NUMBER_OF_TAKEN_SEQUENCE_FLOWS',
     'INCIDENTS',
+    'VARIABLES',
+    'JOBS',
   ])
-  // dataToJson = await jq.run('.', dataToJson, { input: 'json' })
+
+  // WIP, only as usage sample for now
+  dataToJson = await jq.run('.', dataToJson, { input: 'json', output: 'json' })
   return dataToJson
 }
 

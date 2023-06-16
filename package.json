@@ -36,6 +36,7 @@
     "@tsconfig/node18": "^1.0.0",
     "@types/chai": "^4.3.1",
     "@types/chai-fs": "^2.0.2",
+    "@types/crypto-js": "^4.1.1",
     "@types/debug": "^4.1.7",
     "@types/encoding-down": "^5.0.0",
     "@types/express": "^4.17.13",

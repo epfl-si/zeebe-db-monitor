@@ -5,14 +5,16 @@
  *   it is completely arbitrary, as was the need.
  */
 
-import _ from 'lodash'
+import _ from "lodash";
+import CryptoJS from 'crypto-js';
+import {LevelUp} from "levelup";
+import RocksDB from "rocksdb";
 
 import { walkColumnFamily, ZDB } from './zeebeDB.js'
 import { unpackValue } from './zeebeValue.js'
-import { decodeKey } from './zeebeKey.js'
-import {LevelUp} from "levelup";
-import RocksDB from "rocksdb";
+import {DecodedKeyIncidents, DecodedKeyNumberOfTakenSequenceFlows, DecodedKeyVariables, decodeKey} from './zeebeKey.js'
 import {ZbColumnFamilies} from "./zbColumnFamilies";
+
 
 // bigint will be happy to get JSON stringified:
 // @ts-ignore
@@ -41,13 +43,22 @@ type columFamilyNameProcessor  = {
 export const getColumnFamilyContent = async (
   db: LevelUp<RocksDB>,
   columnFamilyName: keyof typeof ZbColumnFamilies,
-  processor: (row: any) => any
+  keyProcessor: (row: any) => any,
+  valueProcessor: (row: any) => any,
 ) => {
-  const data = [];
+  const data: { key: any, value: any }[] = [];
 
   for await (const row of await walkColumnFamily(columnFamilyName, 'keyValue', db)) {
-    const processedReturn = processor(row);
-    if (processedReturn) data.push(processedReturn);
+    const rowData = {
+      'key': keyProcessor(row),
+      'value': valueProcessor(row),
+    }
+
+    //don't do anything if key is empty
+    if (rowData.key) {
+      rowData.value = valueProcessor(row) ?? undefined
+      data.push(rowData)
+    }
   }
   return data
 }
@@ -66,39 +77,63 @@ export const getZeebeContent = async (columnFamilyWanted: (keyof typeof ZbColumn
       name:'NUMBER_OF_TAKEN_SEQUENCE_FLOWS',
       keyComponentsDescription:'${ProcessInstanceKey} ${elements1} ${elements2}',
       keyExample: '2262799816461518 Gateway_4xf2f Flow_2ifm4z9',
-      keyDecoder: (row) => {
-        const keyStruct = decodeKey(row.key)
-
-        // keep only the processInstanceKey and the elements from the key
-        const { family, ...keyStructWithoutFamily } = keyStruct
-        return keyStructWithoutFamily
-      },
-      valueDecoder: (row) => row,
+      keyDecoder: (row) => decodeKey(row.key) as DecodedKeyNumberOfTakenSequenceFlows,
+      valueDecoder: () => void 0,
     },
     {
       name: 'INCIDENTS',
       keyComponentsDescription: '${ProcessInstanceKey}',
-      keyDecoder: (row) => {
-        return unpackValue(row.value)?.incidentRecord
-      },
-      valueDecoder: (row) => unpackValue(row.value),
+      keyDecoder: (row) => decodeKey(row.key) as DecodedKeyIncidents,
+      valueDecoder: (row) => unpackValue(row.value)?.incidentRecord,
     },
     {
       name: 'VARIABLES',
       keyComponentsDescription: '${ProcessInstanceKey} ${label}',
-      keyDecoder: (row) => decodeKey(row.key),
-      valueDecoder: (row) => {
-          // need created_at, updated_at, phdStudentSciper
-          let value = unpackValue(row.value)
+      keyDecoder: (row) => {
+        const key = decodeKey(row.key) as DecodedKeyVariables
 
-          return _.pick(value,
-            [
-              'created_at',
-              'updated_at',
-              'phdStudentSciper',
-            ])
+        if (key.fieldName && [
+          'created_at',
+          'updated_at',
+          'phdStudentSciper',
+        ].includes(key.fieldName)) {
+          return key
+        }
+      },
+      valueDecoder: (row) => {
+          const key = decodeKey(row.key) as DecodedKeyVariables
+          if (key.fieldName && [
+            'created_at',
+            'updated_at',
+            'phdStudentSciper',
+          ].includes(key.fieldName)) {
+            const pass = process.env.PHDASSESS_ENCRYPTION_KEY
+            if (!pass) throw Error('Please set your env file to have the PHDASSESS_ENCRYPTION_KEY')
+
+            const unpackedValueCrypted = unpackValue(unpackValue(row.value).value)
+
+            if (unpackedValueCrypted && pass) {
+              const bytes = CryptoJS.AES.decrypt(unpackedValueCrypted, pass)
+              return bytes?.toString(CryptoJS.enc.Utf8).slice(1, -1)
+            }
+          }
         },
       },
+    {
+      name: 'JOBS',
+      //keyComponentsDescription: '${ProcessInstanceKey}',
+      keyDecoder: (row) => {
+        return decodeKey(row.key)
+      },
+      valueDecoder: (row) => {
+        const unpackedValues = unpackValue(row.value)?.jobRecord
+
+        return _.omit(
+          unpackedValues,
+          ['customHeaders']
+        )
+      },
+    },
   ]
 
   const data: any = {}
@@ -113,7 +148,8 @@ export const getZeebeContent = async (columnFamilyWanted: (keyof typeof ZbColumn
     data[columnFamilyName] = await getColumnFamilyContent(
       db,
       columnFamilyProcessor.name,
-      columnFamilyProcessor.keyDecoder
+      columnFamilyProcessor.keyDecoder,
+      columnFamilyProcessor.valueDecoder,
     )
   }
 

@@ -80,12 +80,20 @@ type DecodedKey = {
   processInstanceKey?: number
 }
 
-type DecodedKeyNumberOfTakenSequenceFlows = DecodedKey & {
+export type DecodedKeyNumberOfTakenSequenceFlows = DecodedKey & {
   elements?: string[]
 }
 
-type DecodedKeyVariables = DecodedKey & {
+export type DecodedKeyIncidents = DecodedKey & {
+  incidentKey?: string
+}
+
+export type DecodedKeyVariables = DecodedKey & {
   fieldName?: string
+}
+
+export type DecodedKeyJobs = DecodedKey & {
+  jobKey?: string
 }
 
 
@@ -109,6 +117,20 @@ export function decodeKey (key: string | ArrayBuffer) {
     }
 
     return keyStruct as DecodedKeyNumberOfTakenSequenceFlows
+  } else if (columnFamilyName === "INCIDENTS") {
+    (keyStruct as DecodedKeyIncidents).incidentKey = parser.consumeZeebeKey()?.toString();
+
+    if (parser.bytesRemaining() !== 0) {
+      throw new Error(`Error parsing INCIDENTS key, ${parser.bytesRemaining()} bytes remaining`);
+    }
+    return keyStruct as DecodedKeyIncidents
+  } else if (columnFamilyName === "JOBS") {
+    (keyStruct as DecodedKeyJobs).jobKey = parser.consumeZeebeKey()?.toString();
+
+    if (parser.bytesRemaining() !== 0) {
+      throw new Error(`Error parsing JOBS key, ${parser.bytesRemaining()} bytes remaining`);
+    }
+    return keyStruct as DecodedKeyJobs
   } else if (columnFamilyName === "VARIABLES") {
     keyStruct.processInstanceKey = parser.consumeZeebeKey();
     (keyStruct as DecodedKeyVariables).fieldName = "";
@@ -121,8 +143,6 @@ export function decodeKey (key: string | ArrayBuffer) {
     }
 
     return keyStruct as DecodedKeyVariables
-  } else if (columnFamilyName === "JOBS") {
-    throw new Error(`The column family ${columnFamilyName} has no decoder`)
   } else {
     throw new Error(`The column family ${columnFamilyName} has no decoder`)
   }
