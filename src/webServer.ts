@@ -36,6 +36,7 @@ function timedGetSingleMetrics (metric_name : string) : () => Promise<string> {
 
 const zeebeDbColumnFamilyEntries : JoinablePromise<string> = new JoinablePromise(timedGetSingleMetrics('zeebe_db_column_family_entries'))
 const zeebeDbColumnFamilyIncidentEntries : JoinablePromise<string> = new JoinablePromise(timedGetSingleMetrics('zeebe_db_column_family_incident_entries'))
+const zeebeDbEstimatedJobSizes : JoinablePromise<string> = new JoinablePromise(timedGetSingleMetrics('zeebe_db_estimated_job_sizes'))
 
 // Prometheus metrics route
 expressApp.get('/metrics', async (req: Request, res: Response) => {
@@ -52,6 +53,7 @@ expressApp.get('/metrics', async (req: Request, res: Response) => {
     await Promise.all([
         zeebeDbColumnFamilyEntries.next(2000).then(pushMetric),
         zeebeDbColumnFamilyIncidentEntries.next(2000).then(pushMetric),
+        zeebeDbEstimatedJobSizes.next(2000).then(pushMetric),
         defaultMetricsRegistry.metrics().then(pushMetric)
     ]);
 

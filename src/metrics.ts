@@ -1,4 +1,4 @@
-import {ColumnFamiliesCount, incidentsMessageCount} from "./zeebeDB.js";
+import {ColumnFamiliesCount, incidentsMessageCount, estimateJobSizes} from "./zeebeDB.js";
 import {client} from "./promClient.js";
 import {tallyHistogram} from "./tallyHistogram.js";
 
@@ -37,6 +37,25 @@ zeebeMetricsRegistry.registerMetric(
           { db_name: 'runtime', column_family: columnFamiliesName }, columnFamilyCount
         )
       )
+    }
+  })
+)
+
+const kbytes = 1024;
+zeebeMetricsRegistry.registerMetric(
+  new client.Histogram({
+    name: `zeebe_db_estimated_job_sizes`,
+    help: "Estimated size of jobs and their variables, that need to be transmitted over the `ActivateJobs` gRPC",
+    labelNames: ['db_name', 'type'],
+    buckets: [10, 100, 200, 500, 1 * kbytes, 10 * kbytes, 100 * kbytes, 200 * kbytes, 500 * kbytes],
+    async collect() {
+      this.reset()  // remove all values from last iteration
+
+      const jobs = await estimateJobSizes()
+      for (const jobKey in jobs) {
+        const { size, type } = jobs[jobKey]
+        this.observe({db_name: 'runtime', type}, size)
+      }
     }
   })
 )

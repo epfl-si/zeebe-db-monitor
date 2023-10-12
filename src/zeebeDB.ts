@@ -9,6 +9,7 @@ import RocksDB from "rocksdb";
 import {RuntimeDir} from "./folders.js";
 import {columnFamiliesNames, ZbColumnFamilies} from "./zbColumnFamilies.js";
 import {unpackValue} from "./zeebeValue.js";
+import {decodeKey, DecodedKeyJobs, DecodedKeyVariables} from "./zeebeKey.js";
 
 
 const LOG_EVERY_N_READS = 10;
@@ -143,6 +144,46 @@ export async function ColumnFamiliesCount() {
   } finally {
     zdb.close()
   }
+}
+
+type jobKey = number;
+type jobRecord = { size: number; type: string };
+export async function estimateJobSizes() : Promise<{ [k : jobKey] : jobRecord }> {
+  debug("estimatedJobSizes(): start");
+  const zdb = await ZDB();
+  type processInstanceKey = number;
+  const jobs : { [k : jobKey] : jobRecord } = {};
+  const jobsOfProcessInstance : { [k : processInstanceKey] : jobKey[] } = {}
+  try {
+      // Bill each process instance with the size of its job:
+      for await (const row of await walkColumnFamily('JOBS', 'keyValue', zdb.db)) {
+        const key = decodeKey(row.key) as DecodedKeyJobs
+        const unpackedValue = unpackValue(row.value)
+        const type = unpackedValue?.jobRecord?.type
+        if (! type) continue
+
+        const processInstanceKey = unpackedValue?.jobRecord?.processInstanceKey
+        if (! processInstanceKey) continue
+        jobs[key.jobKey] = { size: row.value.length, type }
+        if (! jobsOfProcessInstance[processInstanceKey]) jobsOfProcessInstance[processInstanceKey] = []
+        jobsOfProcessInstance[processInstanceKey].push(key.jobKey)
+      }
+
+      // Bill each job that uses a given process instance with the cumulated size of their variables:
+      for await (const row of await walkColumnFamily('VARIABLES', 'keyValue', zdb.db)) {
+        const key = decodeKey(row.key) as DecodedKeyVariables
+        for (const k of jobsOfProcessInstance[key.processInstanceKey] || []) {
+          jobs[k].size += key.fieldName.length + row.value.length
+        }
+      }
+  } catch (e) {
+    debug("estimatedJobSizes(): error");
+    console.error(e)
+    // In this case, we will return an empty set
+  } finally {
+    zdb.close()
+  }
+  return jobs;
 }
 
 
