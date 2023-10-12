@@ -5,6 +5,7 @@
 import {TextEncoder, TextDecoder} from 'util';
 import {columnFamiliesNames} from "./zbColumnFamilies.js";
 
+type zeebeKey = number
 
 function keyParser (key: string | ArrayBuffer | Buffer) {
   let keyBytes: ArrayBufferLike;
@@ -65,7 +66,7 @@ function keyParser (key: string | ArrayBuffer | Buffer) {
     peekInt64,
     consumeInt64: consume(peekInt64, () => 8),
     peekZeebeKey,
-    consumeZeebeKey: consume(peekZeebeKey, () => 8),
+    consumeZeebeKey: consume<zeebeKey>(peekZeebeKey, () => 8),
     peekString,
     consumeString: consume<string>(peekString, (peeked) => peeked.length + 4),
     bytesRemaining
@@ -77,25 +78,25 @@ function keyParser (key: string | ArrayBuffer | Buffer) {
  */
 type DecodedKey = {
   family: string
-  processInstanceKey?: number
 }
 
 export type DecodedKeyNumberOfTakenSequenceFlows = DecodedKey & {
-  elements?: string[]
+  processInstanceKey: zeebeKey
+  elements: string[]
 }
 
 export type DecodedKeyIncidents = DecodedKey & {
-  incidentKey?: string
+  incidentKey: zeebeKey
 }
 
 export type DecodedKeyVariables = DecodedKey & {
-  fieldName?: string
+  processInstanceKey: zeebeKey
+  fieldName: string
 }
 
 export type DecodedKeyJobs = DecodedKey & {
-  jobKey?: string
+  jobKey: zeebeKey
 }
-
 
 export function decodeKey (key: string | ArrayBuffer) {
   const parser = keyParser(key);
@@ -107,7 +108,7 @@ export function decodeKey (key: string | ArrayBuffer) {
   };
 
   if (columnFamilyName === "NUMBER_OF_TAKEN_SEQUENCE_FLOWS") {
-    keyStruct.processInstanceKey = parser.consumeZeebeKey();
+    (keyStruct as DecodedKeyNumberOfTakenSequenceFlows).processInstanceKey = parser.consumeZeebeKey()!;
     (keyStruct as DecodedKeyNumberOfTakenSequenceFlows).elements = [];
     while (undefined !== parser.peekString()) {
       (keyStruct as DecodedKeyNumberOfTakenSequenceFlows).elements!.push(parser.consumeString()!);
@@ -118,21 +119,21 @@ export function decodeKey (key: string | ArrayBuffer) {
 
     return keyStruct as DecodedKeyNumberOfTakenSequenceFlows
   } else if (columnFamilyName === "INCIDENTS") {
-    (keyStruct as DecodedKeyIncidents).incidentKey = parser.consumeZeebeKey()?.toString();
+    (keyStruct as DecodedKeyIncidents).incidentKey = parser.consumeZeebeKey()!;
 
     if (parser.bytesRemaining() !== 0) {
       throw new Error(`Error parsing INCIDENTS key, ${parser.bytesRemaining()} bytes remaining`);
     }
     return keyStruct as DecodedKeyIncidents
   } else if (columnFamilyName === "JOBS") {
-    (keyStruct as DecodedKeyJobs).jobKey = parser.consumeZeebeKey()?.toString();
+    (keyStruct as DecodedKeyJobs).jobKey = parser.consumeZeebeKey()!;
 
     if (parser.bytesRemaining() !== 0) {
       throw new Error(`Error parsing JOBS key, ${parser.bytesRemaining()} bytes remaining`);
     }
     return keyStruct as DecodedKeyJobs
   } else if (columnFamilyName === "VARIABLES") {
-    keyStruct.processInstanceKey = parser.consumeZeebeKey();
+    (keyStruct as DecodedKeyVariables).processInstanceKey = parser.consumeZeebeKey()!;
     (keyStruct as DecodedKeyVariables).fieldName = "";
     while (undefined !== parser.peekString()) {
       const fieldName = parser.consumeString();
@@ -142,7 +143,7 @@ export function decodeKey (key: string | ArrayBuffer) {
       throw new Error(`Error parsing VARIABLES key, ${parser.bytesRemaining()} bytes remaining`);
     }
 
-    return keyStruct as DecodedKeyVariables
+    return keyStruct
   } else {
     throw new Error(`The column family ${columnFamilyName} has no decoder`)
   }
