@@ -3,7 +3,7 @@ import {
   defaultMetricsRegistry, zeebe_db_read_duration_seconds,
   zeebeMetricsRegistry
 } from "./metrics.js";
-import rateLimit from 'express-rate-limit'
+import * as rateLimitModule from 'express-rate-limit'
 import {register} from "prom-client";
 import {JoinablePromise} from "./joinable_promise.js";
 
@@ -13,6 +13,8 @@ export const expressApp = express();
 /**
  * Yep, a rate limiter, as a too many db read could be catastrophic for the production
  */
+// ESM import workaround
+const rateLimit = rateLimitModule.default as unknown as (opts: any) => any;
 const limiter = rateLimit({
   windowMs: 2 * 1000, // 2 sec
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
