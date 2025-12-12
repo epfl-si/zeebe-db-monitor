@@ -13,10 +13,14 @@ declare global {
 }
 
 JSON.stringifyBigInt = function (value: any): string {
-  return JSON.stringify(value, (_key, val) => {
-    if (typeof val === 'bigint') {
-      return val.toString() + 'n'; // append 'n' to indicate BigInt
-    }
-    return val;
-  });
+  return JSON.stringify(
+    value,
+    (_key, val) => {
+      if (typeof val === 'bigint') {
+        return val.toString() + 'n'; // append 'n' to indicate BigInt
+      }
+      return val;
+    },
+    2
+  );
 };

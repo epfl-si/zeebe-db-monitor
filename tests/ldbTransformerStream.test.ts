@@ -1,10 +1,9 @@
 import {pipeline} from 'node:stream/promises';
-import {spawn} from "node:child_process";
 import * as util from "node:util";
 import dotenv from 'dotenv'
 import {expect} from "chai";
 
-import {ldbToKeyValueTransform} from "../src/streams/ldbStreamTransformer.js";
+import {ldbToObjectTransform} from "../src/streams/ldbStreamTransformer.js";
 import {spawnLDBCommand} from "../src/streams/ldbReader.js";
 import type {LdbReaderOptions} from "../src/streams/ldbReader.js";
 import {CaptureObjectStream} from "../src/streams/writables.js";
@@ -20,8 +19,8 @@ const options = {
 
 describe("ldb to key-value transformer tests", () => {
   it("should transform encoded ldb lines into a decoded keys-values map", async () => {
-    const ldbToMapTransformer = new ldbToKeyValueTransform(options)
-    ldbToMapTransformer.on('warn', err => console.log(`Warn: ${err}`))
+    const ldbToMapTransformer = new ldbToObjectTransform(options)
+    ldbToMapTransformer.on('warn', (err: any) => console.log(`Warn: ${err}`))
 
     const ldbCmd = spawnLDBCommand(zeebePartitionPath, options)
 

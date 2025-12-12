@@ -17,12 +17,12 @@ type ldbLineToKeyValue = {
 }
 
 /**
- * Use it to be pipelined from a spawn process stdout of a ldb command ('ldb scan --hex') on
- * a Zeebe RocksDB pack-valued DB.
- * It decodes lines to a map of "key" and "value".
- */
-export class ldbToKeyValueTransform extends Stream.Transform {
-  private readonly skipColumnFamilyNames: (keyof typeof ZbColumnFamilies)[];
+ * This abstract class gives the power to pipeline
+ * a spawn process stdout of a ldb command ('ldb scan --hex') on
+ * a Zeebe RocksDB pack-valued DB to whatever you want once your overload _transform
+*/
+class ldbOnZeebeDbToKeyValueTransform extends Stream.Transform {
+  protected readonly skipColumnFamilyNames: (keyof typeof ZbColumnFamilies)[];
 
   constructor(options:ldbStreamTransformerOptions = {}) {
     super({  ...options, objectMode: true });
@@ -73,7 +73,9 @@ export class ldbToKeyValueTransform extends Stream.Transform {
       value: valueDecoded,
     } as ldbLineToKeyValue
   }
+}
 
+export class ldbToObjectTransform extends ldbOnZeebeDbToKeyValueTransform {
   async _transform(chunk: any, encoding: BufferEncoding, callback: TransformCallback) {
     const lines = chunk.toString().split('\n');
     let keyValue = {}
@@ -92,7 +94,43 @@ export class ldbToKeyValueTransform extends Stream.Transform {
       }
       callback(); // continue to next chunk
     } catch(outerErr) {
-      this.emit('warn', `Unexpected error in ldbToKeyValueTransform: ${ outerErr }`);
+      this.emit('warn', `Unexpected error in ldbToObjectTransform: ${ outerErr }`);
+      callback(); // keep going
+    }
+  }
+}
+
+export class ldbToJSONSTransform extends ldbOnZeebeDbToKeyValueTransform {
+  private isFirst: boolean = true;
+
+  _flush(callback: TransformCallback) {
+    this.push('\n]\n');
+    callback();
+  }
+
+  async _transform(chunk: any, encoding: BufferEncoding, callback: TransformCallback) {
+    const lines = chunk.toString().split('\n');
+    let keyValue = {}
+
+    try {
+      for (const line of lines) {
+        if (!line.trim()) continue;
+
+        try {
+          keyValue = await this.decodeLdbLine(line, this.skipColumnFamilyNames);
+
+          this.push(
+            `${ this.isFirst ? '[\n': ',\n'}${ JSON.stringifyBigInt(keyValue) }`
+          );
+
+          this.isFirst = false
+        } catch (err: any) {
+          this.emit('warn', `Transforming a LDB line to JSON threw an error: ${ err }`);
+        }
+      }
+      callback(); // continue to next chunk
+    } catch(outerErr) {
+      this.emit('warn', `Unexpected error in ldbToJSONSTransform: ${ outerErr }`);
       callback(); // keep going
     }
   }
