@@ -1,5 +1,5 @@
 import {assert} from "chai";
-import {decodeKey} from "../src/zeebeKey.js";
+import {decodeKey} from "../src/decoders/zeebeKey.js";
 
 describe('Testing the capacity to process the keys of the Zeebe DB', () => {
   const numberOfTakenSequenceFlowsKey1 = "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\b\u0000\b\u0000\u0000\u0000\u0005((\u0000\u0000\u0000\u000fGateway_1iu457q\u0000\u0000\u0000\fFlow_1tpm1z9"

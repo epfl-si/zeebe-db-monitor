@@ -8,7 +8,7 @@ import RocksDB from "rocksdb";
 
 import {RuntimeDir} from "./folders.js";
 import {columnFamiliesNames, ZbColumnFamilies} from "./zbColumnFamilies.js";
-import {unpackValue} from "./zeebeValue.js";
+import {unpackValue} from "./decoders/zeebeValue.js";
 
 
 const LOG_EVERY_N_READS = 10;
