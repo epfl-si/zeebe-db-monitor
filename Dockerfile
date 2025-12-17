@@ -1,28 +1,29 @@
-ARG BASE_IMAGE=node:18-alpine
+ARG BASE_IMAGE=node:trixie
 
 FROM $BASE_IMAGE AS common
 
-RUN apk add lz4-libs
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    rocksdb-tools \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
+RUN mkdir -p out
 COPY package*.json ./
 
 FROM common AS build
 
-RUN apk add python3 git make g++ linux-headers lz4-dev
-
-# SIGH. https://github.com/npm/cli/issues/2774
-RUN npm install -g npm@'^6.4.11'
-
-RUN npm install --verbose
+RUN npm install
 COPY . ./
 RUN npm run build
 
 FROM common
 
 ENV NODE_ENV=production
-COPY --from=build /app/node_modules /app/node_modules
+RUN npm install
 COPY --from=build /app/build/ .
 
-CMD node index.js
+ENV ZEEBE_DB_MONITOR_SNAPSHOT_PATH=/data
+
+CMD ["node", "index.js"]

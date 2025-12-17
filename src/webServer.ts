@@ -1,69 +1,41 @@
 import {Request, Response} from "express";
-import {
-  defaultMetricsRegistry, zeebe_db_read_duration_seconds,
-  zeebeMetricsRegistry
-} from "./metrics.js";
-import * as rateLimitModule from 'express-rate-limit'
 import {register} from "prom-client";
-import {JoinablePromise} from "./joinable_promise.js";
+
 
 import express from "express";
+import {defaultMetricsRegistry, zeebeMetricsRegistry} from "./metrics/index.js";
+import {singleFlightLdbOperations} from "./metrics/collector.js";
 export const expressApp = express();
 
-/**
- * Yep, a rate limiter, as a too many db read could be catastrophic for the production
- */
-// ESM import workaround
-const rateLimit = rateLimitModule.default as unknown as (opts: any) => any;
-const limiter = rateLimit({
-  windowMs: 2 * 1000, // 2 sec
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-})
-
-// Apply the rate limiting middleware to all requests
-expressApp.use(limiter)
-
-function timedGetSingleMetrics (metric_name : string) : () => Promise<string> {
-  return async function() {
-    const end = zeebe_db_read_duration_seconds.startTimer({ metric_name })
-    try {
-      return await zeebeMetricsRegistry.getSingleMetricAsString(metric_name)
-    } finally {
-      const time : number = end()
-      console.debug(`Reading from ${metric_name} took ${time}`)
-    }
-  }
-}
-
-const zeebeDbColumnFamilyEntries : JoinablePromise<string> = new JoinablePromise(timedGetSingleMetrics('zeebe_db_column_family_entries'))
-const zeebeDbColumnFamilyIncidentEntries : JoinablePromise<string> = new JoinablePromise(timedGetSingleMetrics('zeebe_db_column_family_incident_entries'))
 
 // Prometheus metrics route
 expressApp.get('/metrics', async (req: Request, res: Response) => {
   try {
     // Start the HTTP request timer, saving a reference to the returned method
-    const end = zeebe_db_read_duration_seconds.startTimer();
     res.setHeader('Content-Type', register.contentType);
     // get metrics one after one, that's better for zb
     let metrics: string[] = []
     const pushMetric = (metric : string | undefined) => {
-      if (metric !== undefined) metrics.push(metric)
+      if (metric) metrics.push(metric)
     }
 
     await Promise.all([
-        zeebeDbColumnFamilyEntries.next(2000).then(pushMetric),
-        zeebeDbColumnFamilyIncidentEntries.next(2000).then(pushMetric),
+        zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_entries').then(pushMetric),
+        // zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_incident_entries').then(pushMetric),
         defaultMetricsRegistry.metrics().then(pushMetric)
     ]);
 
     res.send(`${metrics.join('\n\n')}\n`);
-
-    // End timer and add labels
-    end();
   } catch (e) {
     console.error(`Error while getting metrics : ${e}`)   // send it back to console, so we can debug it
     res.status(500)
     res.json({ message: `Error: ${e}`})
   }
 });
+
+export default async function serve() {
+  // preload first metrics at the app start
+  await singleFlightLdbOperations.get(15)
+
+  expressApp.listen(8081, () => console.log('Server metrics are currently exposed on :8081/metrics...'));
+}

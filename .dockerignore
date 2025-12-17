@@ -1,6 +1,11 @@
 .idea
 .git
+.editorconfig
+.env
 docker_volume
 node_modules/
 Dockerfile
+build/
+tests/
+
 

@@ -5,7 +5,7 @@
 import {TextEncoder, TextDecoder} from 'util';
 import * as cFD from "../zbColumnFamiliesTypes.js";
 import {columnFamiliesNames} from "../zbColumnFamilies.js";
-import {GuessedKey} from "../zbColumnFamiliesTypes.js";
+import {GuessedKey, MESSAGE_STATS, MIGRATIONS_STATE, PROCESS_CACHE_DIGEST_BY_ID} from "../zbColumnFamiliesTypes.js";
 
 
 /**
@@ -227,6 +227,22 @@ export function decodeKey (
       family: columnFamilyName,
       name: parser.consumeString(),
     } as cFD.Exporter
+  } else if (columnFamilyName === 'MIGRATIONS_STATE') {
+    return {
+      family: columnFamilyName,
+      unknownString: parser.consumeString(),
+    } as cFD.MIGRATIONS_STATE
+  } else if (columnFamilyName === 'MESSAGE_STATS') {
+    return {
+      family: columnFamilyName,
+      unknownString: parser.consumeString(),
+    } as cFD.MESSAGE_STATS
+  } else if (columnFamilyName === 'PROCESS_CACHE_DIGEST_BY_ID') {
+    return {
+      family: columnFamilyName,
+      unknownString1: parser.consumeString(),
+      unknownString2: parser.consumeString(),
+    } as cFD.PROCESS_CACHE_DIGEST_BY_ID
   } else {
     // Not a known family, try a guess then
     const guessedKey = guessDecodeKey(key)

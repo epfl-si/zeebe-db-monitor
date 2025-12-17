@@ -1,26 +1,29 @@
 import {pipeline} from 'node:stream/promises';
-import * as util from "node:util";
 import dotenv from 'dotenv'
 import {expect} from "chai";
 
-import {ldbToObjectTransform} from "../src/streams/ldbStreamTransformer.js";
-import {spawnLDBCommand} from "../src/streams/ldbReader.js";
-import type {LdbReaderOptions} from "../src/streams/ldbReader.js";
+import {ldbToObjectTransform} from "../src/streams/decoder.js";
+import {spawnLDBCommand} from "../src/streams/ldbCmd.js";
 import {CaptureObjectStream} from "../src/streams/writables.js";
+import type {LdbReaderOptions} from "../src/streams/ldbCmd.js";
 
 dotenv.config()
-const zeebePartitionPath = process.env.ZEEBE_PARTITION_PATH!
+const zeebePartitionPath = process.env.ZEEBE_DB_MONITOR_SNAPSHOT_PATH!
 
 const options = {
-  columnFamilyName: "INCIDENTS",
-  limit: 10,
+  limit: 100,
   keys_only: false,
 } as LdbReaderOptions
 
-describe("ldb to key-value transformer tests", () => {
+describe("ldb output to key-value transformer tests", () => {
   it("should transform encoded ldb lines into a decoded keys-values map", async () => {
     const ldbToMapTransformer = new ldbToObjectTransform(options)
-    ldbToMapTransformer.on('warn', (err: any) => console.log(`Warn: ${err}`))
+    if (
+      process.env.ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE &&
+      process.env.ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE == "true"
+    ) {
+      ldbToMapTransformer.on('warn', (err: any) => console.log(`Warn: ${err}`))
+    }
 
     const ldbCmd = spawnLDBCommand(zeebePartitionPath, options)
 
@@ -38,11 +41,12 @@ describe("ldb to key-value transformer tests", () => {
       expect(data).to.have.property('value');
     })
 
-    console.log(
-      util.inspect(
-        capture.data,
-        { showHidden: false, depth: null, colors: true }
-      )
-    );
+    // uncomment for logs
+    // console.log(
+    //   util.inspect(
+    //     capture.data,
+    //     { showHidden: false, depth: null, colors: true }
+    //   )
+    // );
   });
 });

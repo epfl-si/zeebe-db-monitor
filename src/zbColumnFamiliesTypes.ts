@@ -115,3 +115,15 @@ export type Exporter = DecodedKey & {
   name: string
 }
 
+export type MIGRATIONS_STATE = DecodedKey & {
+  unknownString: string
+}
+
+export type MESSAGE_STATS = DecodedKey & {
+  unknownString: string
+}
+
+export type PROCESS_CACHE_DIGEST_BY_ID = DecodedKey & {
+  unknownString1: string
+  unknownString2: string
+}

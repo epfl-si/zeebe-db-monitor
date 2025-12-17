@@ -1,37 +1,53 @@
 # Zeebe DB runtime monitor
 
-Monitor number of elements inside Zeebe DB
+Export or Monitor a Zeebe DB
 
 ## Notable Tools
-- Node
-- RocksDB/Levelup
+- Node.js
+- [ldb from rocksdb](github.com/facebook/rocksdb/wiki/Administration-and-Data-Access-Tool#ldb-tool)
 - Prometheus
 
 ## Run
-1. Copy the `.env.sample` file to `.env` and set the correct path to your Zeebe data
-2. Choose one of the following:
-- build and start the apps stack within Docker: `docker-compose up --build zeebe-db-monitor`
-- start outside of Docker (easier to debug), on Debian, it will be:
-  - ```sudo apt install liblz4-dev```
-  - ```
-    npx npm@6 install
-    node --loader ts-node/esm src/index.ts
-    ```
-3. Go to
+
+### As a snapshot to JSON exporter
+
+- In a Node.js setup:
+  ```
+    export ZEEBE_DB_MONITOR_SNAPSHOT_PATH=/path_to_your_snapshot; tsx src/index.ts export --limit 4 --columnFamilyName INCIDENTS
+  ```
+- With Docker:
+  ```
+    docker run --rm -it -v /path_to_your_snapshot:/data rocksdb-ldb node index.js export --limit 4 --columnFamilyName INCIDENTS
+  ```
+
+### As Prometheus snapshot watcher
+- In a Node.js setup:
+  ```
+  export ZEEBE_DB_MONITOR_SNAPSHOT_PATH=/path_to_your_snapshot; tsx src/index.ts watch
+  ```
+- With Docker:
+  ```
+    docker run --rm -it -v /path_to_your_snapshot:/data rocksdb-ldb node index.js watch
+  ```
+
+//TODO: verify this
 - 127.0.0.1:4000 for the grafana dashboards (Docker only)
 - 127.0.0.1:9090 for the prometheus metric query (Docker only)
 - 127.0.0.1:8080/metrics for the prometheus exporter inside the app, aka raw metrics
 
-### How does this work ?
+#### Configure
 
-#### Folders
-The tool use and need two folders:
-- The RO folder: the folder where the app will find the zeebe database. It has to be ready-only, as we want 0 modifications on production files, we are only monitoring the DB files.
-  - by ex.: a mounted RO folder in kubernetes, the same folder as used by Zeebe to save the data but in RO mode
-  - use the env `ZEEBE_DATA_RO_PATH` to set it
+| Env vars                                |                                                               |
+|-----------------------------------------|---------------------------------------------------------------|
+| ZEEBE_DB_MONITOR_SNAPSHOT_PATH          | path to your snapshot, where the 'CURRENT' file resides       |
+| ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE   | shows the warnings in console.log. Default: false             |
+| ZEEBE_DB_MONITOR_LDB_RESULTS_CACHE_TTL  | Time in ms that the ldb operations are cached. Default: 15000 |
+| --------------------------------------- | ---------------------------------------------------------     |
+
+### How does this work?
 
 #### Error management
-To keep with inconsistency on disk access, the app never crash if the db is not available, but return empty values
+To keep with inconsistency on disk access, the app never crashes if the db is not available but returns empty values
 
 ## Prometheus
 
@@ -42,12 +58,7 @@ To keep with inconsistency on disk access, the app never crash if the db is not 
 
 ## Test
 
-Under Docker:
-
-1. [Obtain a production dump](https://confluence.epfl.ch:8443/pages/viewpage.action?pageId=176426019)
-2. Run something like
+1. Run something like
    ```
-   docker build -t zeebe-db-monitor .; \
-   docker run --rm --name zeebe-db-monitor -i -p 8080:8080 -e ZEEBE_DATA_RO_PATH=/zeebe -v $HOME/Dev/PhDassess/snapshots/raft-partition/partitions/1/snapshots/237354356-1490-242489550-242489551:/zeebe:ro -- zeebe-db-monitor
+   npm run test
    ```
-3. Browse http://localhost:8080/

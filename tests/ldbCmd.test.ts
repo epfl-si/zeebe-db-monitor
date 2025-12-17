@@ -1,15 +1,14 @@
+import dotenv from 'dotenv'
 import {expect} from "chai";
 import {pipeline} from "node:stream/promises";
 
 import {CaptureTextStream} from "../src/streams/writables.js";
-import {spawnLDBCommand} from "../src/streams/ldbReader.js";
-import type {LdbReaderOptions} from "../src/streams/ldbReader.js";
-
-import dotenv from 'dotenv'
+import {spawnLDBCommand} from "../src/streams/ldbCmd.js";
+import type {LdbReaderOptions} from "../src/streams/ldbCmd.js";
 
 
 dotenv.config()
-const zeebePartitionPath = process.env.ZEEBE_PARTITION_PATH!
+const zeebePartitionPath = process.env.ZEEBE_DB_MONITOR_SNAPSHOT_PATH!
 
 const options = {
   columnFamilyName: 'INCIDENTS',

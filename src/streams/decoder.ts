@@ -6,13 +6,14 @@ import {ZbColumnFamilies} from "../zbColumnFamilies.js";
 import {decodeKey} from "../decoders/zeebeKey.js";
 import {unpackValue} from "../decoders/zeebeValue.js";
 import {cleanStringFromHexIdentifier, hexToBuffer} from "../decoders/utils.js";
+import {DecodedKey} from "../zbColumnFamiliesTypes.js";
 
 type ldbStreamTransformerOptions = TransformOptions & {
   skipColumnFamilyNames?: (keyof typeof ZbColumnFamilies)[]
 }
 
-type ldbLineToKeyValue = {
-  key: unknown  // will be one of the types from "./zbColumnFamiliesTypes.js";
+export type ldbLineToKeyValue = {
+  key: DecodedKey  // will be one of the descent types of DecodedKey
   value: unknown
 }
 
