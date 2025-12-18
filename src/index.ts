@@ -4,6 +4,7 @@ import minimist from 'minimist'
 import type {LdbReaderOptions} from "./streams/ldbCmd.js";
 import serve from "./webServer.js";
 import {exportDbToConsoleAsJSON} from "./streams/pipes.js";
+import {commandExists} from "./ldbChecker.js";
 
 /**
  * Args setup
@@ -15,6 +16,12 @@ const isExporter = args['_'].includes('export');
 
 if (isWatcher && isExporter) {
   console.error("Only run with 'watch' or 'exporter' argument");
+  process.exit(1);
+}
+
+// ldb command is mandatory, let's check it
+if (!commandExists('ldb')) {
+  console.error("Unable to find the ldb command. Did you install it?");
   process.exit(1);
 }
 
