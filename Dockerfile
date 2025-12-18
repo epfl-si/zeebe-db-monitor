@@ -26,4 +26,4 @@ COPY --from=build /app/build/ .
 
 ENV ZEEBE_DB_MONITOR_SNAPSHOT_PATH=/data
 
-CMD ["node", "index.js"]
+CMD ["node", "index.js", "watch"]
