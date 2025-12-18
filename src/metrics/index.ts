@@ -1,5 +1,4 @@
 import {client} from "../promClient.js";
-import {singleFlightLdbOperations} from "./collector.js";
 import {zeebe_db_column_families_keys_read_duration_seconds, zeebeColumnFamiliesGauge} from "./familiesKeyMetric.js";
 //import {zeebe_db_incidents_per_message_read_duration_seconds, zeebeIncidentsPerMessageGauge} from "./incidentsMetric.js";
 

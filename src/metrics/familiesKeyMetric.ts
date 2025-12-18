@@ -1,6 +1,6 @@
 import {client} from "../promClient.js";
 
-import {singleFlightLdbOperations, singleFlightReturn} from "./collector.js";
+import {singleFlightLdbOperations} from "./collector.js";
 
 
 // Create a histogram of the time to read all entries DB
