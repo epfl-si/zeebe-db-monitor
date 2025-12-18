@@ -28,7 +28,7 @@ Export or Monitor a Zeebe DB
   ```
 - With Docker:
   ```
-    docker run --rm -it -v /path_to_your_snapshot:/data rocksdb-ldb node index.js watch
+    docker run --rm --init -it -v /path_to_your_snapshot:/data -p 8081:8081 rocksdb-ldb
   ```
 
 - 127.0.0.1:4000 for the grafana dashboards (Docker Compose only)
