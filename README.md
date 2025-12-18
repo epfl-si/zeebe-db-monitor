@@ -17,6 +17,7 @@ Export or Monitor a Zeebe DB
   ```
 - With Docker:
   ```
+    docker build . -t rocksdb-ldb
     docker run --rm -it -v /path_to_your_snapshot:/data rocksdb-ldb node index.js export --limit 4 --columnFamilyName INCIDENTS
   ```
 
