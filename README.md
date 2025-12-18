@@ -13,12 +13,12 @@ Export or Monitor a Zeebe DB
 
 - In a Node.js setup:
   ```
-    export ZEEBE_DB_MONITOR_SNAPSHOT_PATH=/path_to_your_snapshot; tsx src/index.ts export --limit 4 --columnFamilyName INCIDENTS
+    export ZEEBE_DB_MONITOR_SNAPSHOT_PATH=/path_to_your_snapshot; tsx src/index.ts export --limit 10 --columnFamilyName INCIDENTS
   ```
 - With Docker:
   ```
     docker build . -t rocksdb-ldb
-    docker run --rm -it -v /path_to_your_snapshot:/data rocksdb-ldb node index.js export --limit 4 --columnFamilyName INCIDENTS
+    docker run --rm -it -v /path_to_your_snapshot:/data rocksdb-ldb node index.js export --limit 10 --columnFamilyName INCIDENTS
   ```
 
 ### As Prometheus snapshot watcher
