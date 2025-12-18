@@ -1,13 +1,15 @@
 import {client} from "../promClient.js";
 
 import {singleFlightLdbOperations} from "./collector.js";
+import {bucketForLdbOperations} from "./index.js";
 
 
 // Create a histogram of the time to read all entries DB
 export const zeebe_db_column_families_keys_read_duration_seconds = new client.Histogram({
   name: 'zeebe_db_column_families_keys_read_duration_seconds',
   help: 'Duration to count the entries for all the columnFamilies keys in ZeebeDB in seconds',
-  labelNames: ["metric_name"]
+  labelNames: ["metric_name"],
+  buckets: bucketForLdbOperations,
 })
 
 export const zeebeColumnFamiliesGauge = new client.Gauge({
