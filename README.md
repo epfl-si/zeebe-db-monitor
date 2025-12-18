@@ -4,7 +4,7 @@ Export or Monitor a Zeebe DB
 
 ## Notable Tools
 - Node.js
-- [ldb from rocksdb](github.com/facebook/rocksdb/wiki/Administration-and-Data-Access-Tool#ldb-tool)
+- [ldb from rocksdb](https://www.github.com/facebook/rocksdb/wiki/Administration-and-Data-Access-Tool#ldb-tool)
 - Prometheus
 
 ## Run
