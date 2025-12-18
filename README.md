@@ -31,10 +31,9 @@ Export or Monitor a Zeebe DB
     docker run --rm -it -v /path_to_your_snapshot:/data rocksdb-ldb node index.js watch
   ```
 
-//TODO: verify this
-- 127.0.0.1:4000 for the grafana dashboards (Docker only)
-- 127.0.0.1:9090 for the prometheus metric query (Docker only)
-- 127.0.0.1:8080/metrics for the prometheus exporter inside the app, aka raw metrics
+- 127.0.0.1:4000 for the grafana dashboards (Docker Compose only)
+- 127.0.0.1:9090 for the prometheus metric query (Docker Compose only)
+- 127.0.0.1:8081/metrics for the prometheus exporter inside the app, aka raw metrics
 
 #### Configure
 
