@@ -50,5 +50,13 @@ export const spawnLDBCommand = (
   ]
 
   console.debug(`Preparing the command: ${[command, ...args].join(' ') } `)
-  return spawn(command, args)
+
+  const spawnLlb = spawn(command, args)
+
+  // don't allow ldb errors to stay in the dark
+  spawnLlb.stderr.on('data', d => {
+    console.log('ldb error:', d.toString());
+  });
+
+  return spawnLlb
 }
