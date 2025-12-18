@@ -17,7 +17,7 @@ JSON.stringifyBigInt = function (value: any): string {
     value,
     (_key, val) => {
       if (typeof val === 'bigint') {
-        return val.toString() + 'n'; // append 'n' to indicate BigInt
+        return val.toString()
       }
       return val;
     },
