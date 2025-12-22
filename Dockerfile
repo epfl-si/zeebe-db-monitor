@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=node:trixie
+ARG BASE_IMAGE=node:24-trixie
 
 FROM $BASE_IMAGE AS common
 
