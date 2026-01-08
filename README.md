@@ -24,7 +24,7 @@ Export or Monitor a Zeebe DB
 ### As Prometheus snapshot watcher
 - In a Node.js setup:
   ```
-  export ZEEBE_DB_MONITOR_SNAPSHOT_PATH=/path_to_your_snapshot; tsx src/index.ts watch
+    export ZEEBE_DB_MONITOR_SNAPSHOT_PATH=/path_to_your_snapshot; tsx src/index.ts watch
   ```
 - With Docker:
   ```
