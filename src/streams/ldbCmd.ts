@@ -40,6 +40,8 @@ export const spawnLDBCommand = (
     'scan',
     '--hex',
     // set a new path where to write logs files, preserving the RW DB
+    ... process.env.ZEEBE_DB_MONITOR_SECONDARY_PATH ?
+      [`--secondary_path=${ process.env.ZEEBE_DB_MONITOR_SECONDARY_PATH }`] : [],
     // `--secondary_path=${ fs.mkdtempSync(`${ os.tmpdir() }/zeebe-ldb-secondary-`) }`,
     ... options?.keys_only ? [`--no_value`] : [],
     ... options?.limit ? [`--max_keys=${ options.limit }`] : [],
