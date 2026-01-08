@@ -9,26 +9,30 @@ Export or Monitor a Zeebe DB
 
 ## Run
 
+Copy `.env.sample` to `.env` and setup your shell to use your configured environment variables. You can use `direnv` tool for this.
+
+See "Configure" below for the environment variables usage.
+
 ### As a snapshot to JSON exporter
 
 - In a Node.js setup:
   ```
-    export ZEEBE_DB_MONITOR_SNAPSHOT_PATH=/path_to_your_snapshot; tsx src/index.ts export --limit 10 --columnFamilyName INCIDENTS
+    tsx src/index.ts export --limit 10 --columnFamilyName INCIDENTS
   ```
 - With Docker:
   ```
     docker build . -t rocksdb-ldb
-    docker run --rm -it -v /path_to_your_snapshot:/data rocksdb-ldb node index.js export --limit 10 --columnFamilyName INCIDENTS
+    docker run --rm -it -v "$ZEEBE_DB_MONITOR_SNAPSHOT_PATH:/data" rocksdb-ldb node index.js export --limit 10 --columnFamilyName INCIDENTS
   ```
 
 ### As Prometheus snapshot watcher
 - In a Node.js setup:
   ```
-    export ZEEBE_DB_MONITOR_SNAPSHOT_PATH=/path_to_your_snapshot; tsx src/index.ts watch
+    tsx src/index.ts watch
   ```
 - With Docker:
   ```
-    docker run --rm --init -it -v /path_to_your_snapshot:/data -p 8081:8081 rocksdb-ldb
+    docker run --rm --init -it -v "$ZEEBE_DB_MONITOR_SNAPSHOT_PATH:/data" -p 8081:8081 rocksdb-ldb
   ```
 
 - 127.0.0.1:4000 for the grafana dashboards (Docker Compose only)
