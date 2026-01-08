@@ -40,13 +40,6 @@ export const exportDbToConsoleAsJSON = async (
 
   const ldbToJSONSTransformer = new ldbToJSONSTransform()
 
-  if (
-    process.env.ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE &&
-    process.env.ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE == "true"
-  ) {
-    ldbToJSONSTransformer.on('warn', (err: any) => console.log(`Warn: ${ err }`))
-  }
-
   await pipeline(
     ldbCmd.stdout,
     ldbToJSONSTransformer,
@@ -63,13 +56,6 @@ export const columnFamiliesCounter = async () => {
   if (!zeebePartitionPath) throw new Error('Missing a zeebe partition path')
 
   const ldbToMapTransformer = new ldbToObjectTransform()
-
-  if (
-    process.env.ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE &&
-    process.env.ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE == "true"
-  ) {
-    ldbToMapTransformer.on('warn', (err: any) => console.log(`Warn: ${ err }`))
-  }
 
   const ldbCmd = spawnLDBCommand(
     zeebePartitionPath,
@@ -91,15 +77,7 @@ export const incidentsPerMessageCounter = async () => {
   const zeebePartitionPath = process.env.ZEEBE_DB_MONITOR_SNAPSHOT_PATH
   if (!zeebePartitionPath) throw new Error('Missing a zeebe partition path')
 
-
   const ldbToMapTransformer = new ldbToObjectTransform()
-
-  if (
-    process.env.ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE &&
-    process.env.ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE == "true"
-  ) {
-    ldbToMapTransformer.on('warn', (err: any) => console.log(`Warn: ${ err }`))
-  }
 
   const ldbCmd = spawnLDBCommand(
     zeebePartitionPath,

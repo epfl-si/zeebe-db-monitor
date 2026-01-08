@@ -28,6 +28,13 @@ class ldbOnZeebeDbToKeyValueTransform extends Stream.Transform {
   constructor(options:ldbStreamTransformerOptions = {}) {
     super({  ...options, objectMode: true });
     this.skipColumnFamilyNames = options.skipColumnFamilyNames || [];
+
+    if (
+      process.env.ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE &&
+      process.env.ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE == "true"
+    ) {
+      this.on('warn', (err: any) => console.log(`Warn: ${ err }`))
+    }
   }
 
   async decodeLdbLine(
