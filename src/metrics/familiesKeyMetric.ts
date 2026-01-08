@@ -3,7 +3,7 @@ import {client} from "../promClient.js";
 import {singleFlightLdbOperations} from "./collector.js";
 
 export const bucketForLdbOperations = [
-  0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5, 7
+  7, 9, 11, 13, 15, 17, 19, 21, 24, 27
 ]
 
 // Create a histogram of the time to read all entries DB
