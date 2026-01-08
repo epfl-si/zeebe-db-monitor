@@ -49,7 +49,12 @@ export const spawnLDBCommand = (
       [`--to=0x${ columnFamilyTo }`] : [],
   ]
 
-  console.debug(`Preparing the command: ${[command, ...args].join(' ') } `)
+  if (
+    process.env.ZEEBE_DB_MONITOR_CMD_DEBUG &&
+    process.env.ZEEBE_DB_MONITOR_CMD_DEBUG == "true"
+  ) {
+    console.debug(`Preparing the command: ${ [command, ...args].join(' ') } `)
+  }
 
   const spawnLlb = spawn(command, args)
 

@@ -41,12 +41,13 @@ See "Configure" below for the environment variables usage.
 
 #### Configure
 
-| Env vars                                         |                                                               |
-|--------------------------------------------------|---------------------------------------------------------------|
-| ZEEBE_DB_MONITOR_SNAPSHOT_PATH                   | path to your snapshot, where the 'CURRENT' file resides       |
-| ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE | shows the warnings in console.log. Default: false             |
-| ZEEBE_DB_MONITOR_LDB_RESULTS_CACHE_TTL           | Time in ms that the ldb operations are cached. Default: 15000 |
-| ---------------------------------------          | ---------------------------------------------------------     |
+| Env vars                                          |                                                               |
+|---------------------------------------------------|---------------------------------------------------------------|
+| ZEEBE_DB_MONITOR_SNAPSHOT_PATH                    | path to your snapshot, where the 'CURRENT' file resides       |
+| ZEEBE_DB_MONITOR_CMD_DEBUG                        | show the command in console.debug everytime the db is read    |
+| ZEEBE_DB_MONITOR_DECODER_SHOW_WARNING_IN_CONSOLE  | shows the warnings in console.log. Default: false             |
+| ZEEBE_DB_MONITOR_LDB_RESULTS_CACHE_TTL            | Time in ms that the ldb operations are cached. Default: 15000 |
+| ---------------------------------------           | ---------------------------------------------------------     |
 
 ### How does this work?
 
