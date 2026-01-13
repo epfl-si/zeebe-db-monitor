@@ -1,5 +1,4 @@
 import {pipeline} from 'node:stream/promises';
-import * as util from "node:util";
 import dotenv from 'dotenv'
 import {expect} from "chai";
 
