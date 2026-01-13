@@ -57,13 +57,13 @@ describe("Prometheus /metrics endpoint", () => {
     );
   });
 
-  // it("should have some number of incidents per errorMessage metrics", async () => {
-  //   const interestingErrorMessages = ['INCIDENTS']
-  //   for (const message of interestingErrorMessages) {
-  //     expect(res.text).to.include(
-  //       `zeebe_db_column_family_incident_entries{db_name="runtime",error_message="${ message }"}`,
-  //       `The error message ${ message } is missing from the prometheus metrics`
-  //     );
-  //   }
-  // });
+  it("should have some number of incidents per errorMessage metrics", async () => {
+    const interestingErrorMessages = ['INCIDENTS']
+    for (const message of interestingErrorMessages) {
+      expect(res.text).to.include(
+        `zeebe_db_column_family_incident_entries{db_name="runtime",error_message="${ message }"}`,
+        `The error message ${ message } is missing from the prometheus metrics`
+      );
+    }
+  });
 });

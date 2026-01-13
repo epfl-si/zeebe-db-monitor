@@ -21,7 +21,7 @@ expressApp.get('/metrics', async (req: Request, res: Response) => {
 
     await Promise.all([
         zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_entries').then(pushMetric),
-        // zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_incident_entries').then(pushMetric),
+        zeebeMetricsRegistry.getSingleMetricAsString('zeebe_db_column_family_incident_entries').then(pushMetric),
         defaultMetricsRegistry.metrics().then(pushMetric)
     ]);
 

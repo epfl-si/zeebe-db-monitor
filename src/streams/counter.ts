@@ -36,6 +36,19 @@ export class CountByFamilyName extends Writable {
 
 type IncidentMessage = string;
 export type IncidentsPerMessageCount = Record<IncidentMessage, number>;
+type IncidentRecordValue = {
+  incidentRecord: {
+    errorType: string
+    errorMessage: string
+    bpmnProcessId: string
+    processDefinitionKey: string
+    processInstanceKey: string
+    elementId: string
+    elementInstanceKey: string
+    jobKey: string
+    variableScopeKey: string
+  }
+}
 
 /**
  * Take chunks and build a total per incidents message
@@ -52,12 +65,14 @@ export class CountPerIncidentMessage extends Writable {
     try {
       const key = chunk?.key;
       const name = key?.family;
-      const value = chunk?.value as string;
+      const value = chunk?.value as any;
 
-      if (value) {
-        console.log(`Value found ${JSON.stringify(value)}`);
-        const prev = this.counted[value];
-        this.counted[value] = prev === undefined ? 1 : prev + 1;
+      if (value?.incidentRecord?.errorMessage) {
+        const typedValue = value as IncidentRecordValue
+        const message = typedValue.incidentRecord.errorMessage
+
+        const prev = this.counted[message];
+        this.counted[message] = prev === undefined ? 1 : prev + 1;
       }
 
       callback();
