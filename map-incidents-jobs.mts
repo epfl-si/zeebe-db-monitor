@@ -1,5 +1,8 @@
 #!/usr/bin/env -S npm exec --yes --package=zx@latest zx --
+// @ts-ignore
+import { $ } from 'zx'
 import fs from 'fs'
+
 
 // utils
 function msToIso(ms: string) {
