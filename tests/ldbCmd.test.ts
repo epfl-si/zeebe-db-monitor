@@ -1,0 +1,89 @@
+import dotenv from 'dotenv'
+import {expect} from "chai";
+import {pipeline} from "node:stream/promises";
+
+import {CaptureTextStream} from "../src/streams/writables.js";
+import {spawnLDBCommand} from "../src/streams/ldbCmd.js";
+import type {LdbReaderOptions} from "../src/streams/ldbCmd.js";
+
+
+dotenv.config()
+const zeebePartitionPath = process.env.ZEEBE_DB_MONITOR_SNAPSHOT_PATH!
+
+const options = {
+  columnFamilyName: 'INCIDENTS',
+  limit: 4,
+  keys_only: false,
+  // skipColumnFamilyNames: [
+  //   'INCIDENTS',
+  //   'INCIDENT_PROCESS_INSTANCES',
+  //   'INCIDENT_JOBS',
+  //   'VARIABLES',
+  //   'JOBS',
+  //   'JOB_STATES',
+  //   'JOB_DEADLINES',
+  //   'ELEMENT_INSTANCE_KEY',
+  //   'NUMBER_OF_TAKEN_SEQUENCE_FLOWS',
+  //   'ELEMENT_INSTANCE_PARENT_CHILD',
+  //   'ELEMENT_INSTANCE_CHILD_PARENT',
+  //   'PROCESS_SUBSCRIPTION_BY_KEY',
+  //   'MESSAGE_SUBSCRIPTION_BY_NAME_AND_CORRELATION_KEY',
+  //   'EVENT_SCOPE',
+  //   'PROCESS_CACHE',
+  //   'PROCESS_CACHE_BY_ID_AND_VERSION',
+  //   'PROCESS_INSTANCE_KEY_BY_DEFINITION_KEY',
+  //   'MESSAGE_SUBSCRIPTION_BY_KEY',
+  // ],
+} as LdbReaderOptions
+
+describe('LDB command line tester', () => {
+  let last_captured_stream_output: string
+
+  after(() => {
+    // uncomment if you want to look at the last test output
+    //console.log(last_captured_stream_output);
+  })
+
+  it('should be able to read the ldb stream', async () => {
+    const ldbCmd = spawnLDBCommand(zeebePartitionPath, options)
+    const capture = new CaptureTextStream();
+
+    await pipeline(
+      ldbCmd.stdout,
+      capture
+    );
+
+    expect(capture.data).to.be.a('string');
+    expect(capture.data).to.contain('==>');
+    last_captured_stream_output = capture.data
+  });
+
+  it('should have key only', async () => {
+    const ldbCmd= spawnLDBCommand(
+      zeebePartitionPath,
+      { ...options, keys_only: true }
+    )
+
+    const capture = new CaptureTextStream();
+
+    await pipeline(
+      ldbCmd.stdout,
+      capture
+    );
+    expect(capture.data).to.not.contain('==>');
+    last_captured_stream_output = capture.data
+  });
+
+  it('should have key and values', async () => {
+    const ldbCmd = spawnLDBCommand(zeebePartitionPath, options)
+    const capture = new CaptureTextStream();
+
+    await pipeline(
+      ldbCmd.stdout,
+      capture
+    );
+
+    expect(capture.data).to.contain('==>');
+    last_captured_stream_output = capture.data
+  });
+});

@@ -1,3 +1,51 @@
-import {expressApp} from "./webServer.js";
+import dotenv from 'dotenv'
+import minimist from 'minimist'
 
-expressApp.listen(8081, () => console.log('Server metrics are currently exposed on /metrics...'));
+import type {LdbReaderOptions} from "./streams/ldbCmd.js";
+import serve from "./webServer.js";
+import {exportDbToConsoleAsJSON} from "./streams/pipes.js";
+import {commandExists} from "./ldbChecker.js";
+
+/**
+ * Args setup
+ */
+const args = minimist(process.argv.slice(2));
+
+const isWatcher = args['_'].includes('watch');
+const isExporter = args['_'].includes('export');
+
+if (isWatcher && isExporter) {
+  console.error("Only run with 'watch' or 'exporter' argument");
+  process.exit(1);
+}
+
+// ldb command is mandatory, let's check it
+if (!commandExists('ldb')) {
+  console.error("Unable to find the ldb command. Did you install it?");
+  process.exit(1);
+}
+
+/**
+ * Env config
+ */
+dotenv.config()
+
+const zeebePartitionPath = process.env.ZEEBE_DB_MONITOR_SNAPSHOT_PATH ??
+  (() => {
+    throw ("Missing env var ZEEBE_DB_MONITOR_SNAPSHOT_PATH that declare the base path to the db folder, e.g.: ")
+  })()
+
+/**
+ * Action!
+ */
+if (isWatcher) {
+  await serve();
+} else if (isExporter) {
+  await exportDbToConsoleAsJSON(
+    zeebePartitionPath,
+    args as LdbReaderOptions
+  );
+} else {
+  console.error('Only run as watcher or transformer');
+  process.exit(1);
+}
