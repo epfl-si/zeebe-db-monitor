@@ -36,6 +36,7 @@ for (const entry of jobsData) {
     worker: jobRecord.worker,
     retries: jobRecord.retries,
     processInstanceKey: jobRecord.processInstanceKey,
+    processDefinitionVersion: jobRecord.processDefinitionVersion,
     elementId: jobRecord.elementId,
     deadline: msToIso(jobRecord.deadline)
   })
@@ -65,6 +66,7 @@ for (const entry of incidentsData) {
     job_type: job.type,
     job_retries: job.retries,
     job_processInstanceKey: job.processInstanceKey,
+    job_processDefinitionVersion: job.processDefinitionVersion,
     job_elementId: job.elementId,
     job_deadline: job.deadline,
   })
