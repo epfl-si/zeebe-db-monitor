@@ -1,8 +1,4 @@
-#!/usr/bin/env -S npm exec --yes --package=zx@latest zx --
-// @ts-ignore
-import { $ } from 'zx'
-import fs from 'fs'
-
+#!/usr/bin/env -S npx zx
 
 // utils
 function msToIso(ms: string) {
@@ -10,10 +6,16 @@ function msToIso(ms: string) {
 }
 
 console.log(`Loading jobs...`)
-const jobsData = await $`tsx src/index.ts export  --columnFamilyName JOBS`.json()
+
+//@ts-ignore
+const jobsData = await $`tsx src/index.ts export --columnFamilyName JOBS`.json()
+console.log(`Loaded ${jobsData.length} jobs`)
 
 console.log(`Loading incidents...`)
-const incidentsData = await $`tsx src/index.ts export  --columnFamilyName INCIDENTS`.json()
+
+//@ts-ignore
+const incidentsData = await $`tsx src/index.ts export --columnFamilyName INCIDENTS`.json()
+console.log(`Loaded ${incidentsData.length} jobs`)
 
 /**
  * Build JOB lookup
@@ -39,7 +41,7 @@ for (const entry of jobsData) {
   })
 }
 
-console.log(`Loaded ${jobs.size} jobs`)
+
 
 /**
  * Extend INCIDENTS
@@ -69,6 +71,7 @@ for (const entry of incidentsData) {
 }
 
 // Write output
+//@ts-ignore
 fs.writeFileSync(
   'extended-incidents.json',
   JSON.stringify(extendedIncidents, null, 2)
