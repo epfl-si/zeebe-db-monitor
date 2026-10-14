@@ -7,10 +7,11 @@
   dotenv.enable = true;
 
   # https://devenv.sh/packages/
-  packages = [
-   pkgs.nodejs_24
-   pkgs.typescript
-   pkgs.rocksdb.tools  # providing the 'ldb' command
+  packages = with pkgs; [
+   nodejs_24
+   typescript
+   tsx
+   rocksdb.tools  # providing the 'ldb' command
    ];
 
   enterShell = ''
